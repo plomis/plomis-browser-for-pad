@@ -28,8 +28,10 @@ node_modules/react-native/flow/
 [options]
 emoji=true
 
+esproposal.export_star_as=enable
 esproposal.optional_chaining=enable
 esproposal.nullish_coalescing=enable
+module.ignore_non_literal_requires=true
 
 module.system=haste
 module.system.haste.use_name_reducers=true
@@ -66,4 +68,4 @@ suppress_comment=\\(.\\|\n\\)*\\$FlowFixedInNextDeploy
 suppress_comment=\\(.\\|\n\\)*\\$FlowExpectedError
 
 [version]
-^0.92.0
+^0.98.1

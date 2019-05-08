@@ -1,0 +1,15 @@
+{
+  "parser": "babel-eslint",
+  "plugins": [
+    "flowtype"
+  ],
+  "extends": [
+    "plugin:flowtype/recommended",
+    "promise-react"
+  ],
+  "settings": {
+    "flowtype": {
+      "onlyFilesWithFlowAnnotation": true
+    }
+  }
+}
