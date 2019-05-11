@@ -1,7 +1,8 @@
 // @flow
 
 import React, { Component } from 'react';
-import { StyleSheet, View, WebView, Text, Platform } from 'react-native';
+import { StyleSheet, View, Text, Platform } from 'react-native';
+import { WebView } from 'react-native-webview';
 // import LoadingPage from '../LoadingPage';
 // import LoadErrorPage from '../LoadErrorPage';
 import jsForInjection from './injectionString';
