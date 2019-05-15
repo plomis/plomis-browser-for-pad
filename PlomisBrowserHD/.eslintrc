@@ -11,5 +11,8 @@
     "flowtype": {
       "onlyFilesWithFlowAnnotation": true
     }
+  },
+  rules: {
+    "react/no-direct-mutation-state": [0]
   }
 }
