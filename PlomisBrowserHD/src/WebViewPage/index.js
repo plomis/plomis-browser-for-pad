@@ -1,14 +1,13 @@
 // @flow
 
 
-import uuid from 'uuid/v1';
 import React, { Component } from 'react';
 import { WebView } from 'react-native-webview';
-import { withNavigationFocus } from 'react-navigation';
-import { StyleSheet, View, Text, Platform } from 'react-native';
+import { withNavigationFocus, StackActions } from 'react-navigation';
+import { StyleSheet, View, Button, Text, Platform } from 'react-native';
 // import LoadingPage from '../LoadingPage';
 // import LoadErrorPage from '../LoadErrorPage';
-import { History } from '../ViewPortState';
+import { History, Tabs } from '../ViewPortState';
 import jsForInjection from './injectionString';
 
 // const dp2px = dp => PixelRatio.getPixelSizeForLayoutSize( dp );
@@ -19,67 +18,104 @@ import jsForInjection from './injectionString';
 // console.log("Dimensions.get( 'window' ):", Dimensions.get( 'window' ))
 
 type Props = {
-  navigation: any
+  navigation: any,
+  isFocused: boolean
 };
 type State = {
   uuid: string,
-  current: string
+  current: any
 };
 class ViewPage extends Component<Props, State> {
 
   webViewRef: any;
+  historyUrl: any;
+  historyBack: any;
+  historyForward: any;
+  historyReload: any;
+  tabsPop: any;
+  didFocusSubscription: any;
 
   constructor( props: Props ) {
     super( props );
     this.webViewRef = React.createRef();
-    // const DefaultUrl = 'https://emms.thingspower.com.cn/';
-    // const DefaultUrl = 'http://127.0.0.1:8000';
-    // const DefaultUrl = 'https://baidu.com';
     const DefaultUrl = 'https://emms.thingspower.com.cn/emms/face';
     this.state = {
-      current: this.props.navigation.getParam( 'url', '' ) || DefaultUrl,
-      uuid: uuid()
+      current: { url: this.props.navigation.getParam( 'url' ) || DefaultUrl },
+      uuid: this.props.navigation.state.key
     };
-    History.set( this.state.uuid, [this.state.current]);
+    History.set( this.state.uuid, []);
+    Tabs.set( 'current', this.state.uuid );
+    const allTabs = Tabs.get( 'all' ) || [];
+    Tabs.set( 'all', [ ...allTabs, this.state.uuid ]);
   }
 
-  componentDidMount = () => {console.log("this.props.fovus:", this.props.focus)
+  componentDidMount = () => {
     this.handleUrl();
     this.handleBack();
     this.handleForward();
+    this.handlePop();
+    this.handleReload();
+  };
+
+  componentWillUnmount = () => {
+    function remove( listener ) {
+      if ( listener ) {
+        ( listener.clear || listener.remove )();
+      }
+    }
+    remove( this.historyUrl );
+    remove( this.historyBack );
+    remove( this.historyForward );
+    remove( this.tabsPop );
+    remove( this.didFocusSubscription );
+  };
+
+  handleDidFocus = () => {
+    this.didFocusSubscription = this.props.navigation.addListener( 'didFocus', () => {
+      Tabs.set( 'current', this.state.uuid );
+    });
   };
 
   handleUrl = () => {
-    History.watch( 'url', ( url ) => {
-      const history = History.get( this.state.uuid );
-      const index = history.findIndex( this.state.current );
-      History.set( this.state.uuid, [ ...history.slice( 0, index + 1 ), url ]);
-      this.setState({
-        current: url
-      });
+    this.historyUrl = History.watch( 'url', ( url ) => {
+      if ( this.props.isFocused ) {
+        this.setState({ current: { url }});
+      }
     });
   };
 
   handleBack = () => {
-    History.watch( 'back', () => {
-      const history = History.get( this.state.uuid );
-      const index = history.findIndex( this.state.current );
-      if ( index > 1 ) {
-        this.setState({
-          current: history[ index - 1 ]
-        });
+    this.historyBack = History.watch( 'back', () => {
+      if ( this.props.isFocused ) {
+        this.webViewRef.current.goBack();
       }
     });
   };
 
   handleForward = () => {
-    History.watch( 'back', () => {
-      const history = History.get( this.state.uuid );
-      const index = history.findIndex( this.state.current );
-      if ( index < history.length - 1 ) {
-        this.setState({
-          current: history[ index + 1 ]
-        });
+    this.historyForward = History.watch( 'forward', () => {
+      if ( this.props.isFocused ) {
+        this.webViewRef.current.goForward();
+      }
+    });
+  };
+
+  handleReload = () => {
+    this.historyReload = History.watch( 'reload', () => {
+      if ( this.props.isFocused ) {
+        this.webViewRef.current.reload();
+      }
+    });
+  };
+
+  handlePop = () => {
+    this.tabsPop = Tabs.watch( 'pop', () => {
+      if ( this.props.isFocused ) {
+        const { navigation } = this.props;
+        const allTabs = Tabs.get( 'all' );
+        allTabs.pop();
+        Tabs.set( 'all', [...allTabs]);
+        navigation.pop();
       }
     });
   };
@@ -106,13 +142,17 @@ class ViewPage extends Component<Props, State> {
 
   handleMessage = ( event: any ) => {
     console.log( "url:", event.nativeEvent.data );
-    this.props.navigation.navigate( 'Viewer', { url: event.nativeEvent.data });
+    Tabs.dispense( 'add' );
+    this.props.navigation.dispatch( StackActions.push({
+      routeName: 'Viewer',
+      params: {
+        url: event.nativeEvent.data
+      }
+    }));
   };
 
   handleNavigationStateChange = ( state: any ) => {
-    const history = History.get( this.state.uuid );
-    history.push( Object.assign({}, state ));
-    History.dispense( this.state.uuid, [...history]);
+    this.state.current = Object.assign({}, state );
   };
 
   // handleShouldStartLoadWithRequest = ( request: any ) => {
@@ -144,7 +184,7 @@ class ViewPage extends Component<Props, State> {
       // allowUniversalAccessFromFileURLs: false,
       // allowsInlineMediaPlayback: false,
       automaticallyAdjustContentInsets: false,
-      source: { uri: this.state.current }
+      source: { uri: this.state.current.url }
     };
     // 仅在ios有效
     if ( Platform.OS === "ios" ) {
@@ -157,7 +197,7 @@ class ViewPage extends Component<Props, State> {
     // 安卓取了个反
     if ( Platform.OS === 'android' ) {
       Object.assign( props, {
-        scalesPageToFit: false
+        // scalesPageToFit: false
       });
     }
 

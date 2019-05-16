@@ -8,7 +8,6 @@ import type { AbstractComponent } from 'react';
 export type ViewPortProps = {
   url?: string
 };
-
 type ViewPortControllerProps = {
   url?: string
 };

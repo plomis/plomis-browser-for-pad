@@ -5,7 +5,6 @@ import SplashScreen from 'react-native-splash-screen';
 import { createAppContainer, createStackNavigator } from 'react-navigation';
 import { useScreens } from 'react-native-screens';
 import Container from './Container';
-import './ViewPortState';
 
 
 useScreens();

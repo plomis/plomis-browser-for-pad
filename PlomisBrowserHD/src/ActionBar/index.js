@@ -3,6 +3,7 @@
 import React, { Component } from 'react';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Animated, StyleSheet, View, Text, TouchableOpacity, Easing } from 'react-native';
+import { History, Tabs } from '../ViewPortState';
 
 
 type BarItemProps = {
@@ -29,18 +30,26 @@ class BarItem extends Component<BarItemProps> {
 
 type MinBarItemProps = {
   name: any,
+  disabled?: boolean,
   onPress?: () => void
 };
 class MinBarItem extends Component<MinBarItemProps> {
   render() {
-    const { name, onPress } = this.props;
-    return (
+    const { name, disabled, onPress } = this.props;
+    const button = (
+      <View style={styles.minItem}>
+        <MaterialCommunityIcons
+          size={24} name={name}
+          style={styles.itemIcon} />
+      </View>
+    );
+    return disabled ? (
+      <View style={{ opacity: 0.3 }}>
+        {button}
+      </View>
+    ) : (
       <TouchableOpacity activeOpacity={0.6} onPress={onPress}>
-        <View style={styles.minItem}>
-          <MaterialCommunityIcons
-            size={24} name={name}
-            style={styles.itemIcon} />
-        </View>
+        {button}
       </TouchableOpacity>
     );
   }
@@ -51,31 +60,48 @@ type Props = {
 };
 type State = {
   y: any,
-  minY: any
+  minY: any,
+  popupBar: boolean
 };
 class ActionBar extends Component<Props, State> {
 
+  tabsAdd: any;
+
   state = {
     y: new Animated.Value( -98 ),
-    minY: new Animated.Value( -44 )
+    minY: new Animated.Value( -44 ),
+    popupBar: false
   };
 
   componentDidMount() {
+    this.handleAddTabs();
     Animated.timing( this.state.minY, {
       toValue: 0,
       easing:  Easing.out( Easing.cubic )
     }).start();
   }
 
+  componentWillUnmount = () => {
+    function remove( listener ) {
+      if ( listener ) {
+        ( listener.clear || listener.remove )();
+      }
+    }
+    remove( this.tabsAdd );
+  };
+
   handleShow = () => {
-    Animated.timing( this.state.y, {
-      toValue: 17,
-      easing:  Easing.out( Easing.exp )
-    }).start();
-    Animated.timing( this.state.minY, {
-      toValue: -44,
-      easing:  Easing.out( Easing.exp )
-    }).start();
+    const { popupBar } = this.state;
+    if ( !popupBar ) {
+      Animated.timing( this.state.y, {
+        toValue: 17,
+        easing:  Easing.out( Easing.exp )
+      }).start();
+      Animated.timing( this.state.minY, {
+        toValue: -44,
+        easing:  Easing.out( Easing.exp )
+      }).start();
+    }
   };
 
   handleHide = () => {
@@ -89,26 +115,50 @@ class ActionBar extends Component<Props, State> {
     }).start();
   };
 
+  handleBack = () => {
+    History.dispense( 'back' );
+  }
+
+  handleForward = () => {
+    History.dispense( 'forward' );
+  }
+
+  handleReload = () => {
+    History.dispense( 'reload' );
+  }
+
+  handlePopToTop = () => {
+    Tabs.dispense( 'pop' );
+    this.setState({ popupBar: false });
+  }
+
+  handleAddTabs = () => {
+    this.tabsAdd = Tabs.watch( 'add', () => {
+      this.setState({ popupBar: true });
+      this.handleHide();
+    });
+  };
+
   render() {
-    const { y, minY } = this.state;
+    const { y, minY, popupBar } = this.state;
     const { style } = this.props;
     return (
       <View style={style}>
         <Animated.View style={[ styles.bar, { bottom: y }]}>
-          <BarItem name="arrow-left" text="后退"  />
-          <BarItem name="arrow-right" text="前进"  />
-          <BarItem name="reorder-horizontal" text="最近打开"  />
-          <BarItem active name="clock-outline" text="历史记录" />
-          <BarItem name="loop" text="刷新页面"  />
-          <BarItem name="selection-drag" text="截图分享"  />
-          <BarItem name="home" text="返回首页"  />
-          <BarItem name="settings-outline" text="系统设置"  />
-          <BarItem onPress={this.handleHide} name="arrow-expand-down" text="隐藏界面"  />
+          <BarItem name="arrow-left" text="后退" onPress={this.handleBack}  />
+          <BarItem name="arrow-right" text="前进" onPress={this.handleForward} />
+          {/* <BarItem name="reorder-horizontal" text="最近打开"  /> */}
+          {/* <BarItem active name="clock-outline" text="历史记录" /> */}
+          <BarItem name="loop" text="刷新" onPress={this.handleReload} />
+          {/* <BarItem name="selection-drag" text="截图分享"  /> */}
+          {/* <BarItem name="home" text="返回" onPress={this.handlePopToTop} /> */}
+          {/* <BarItem name="settings-outline" text="系统设置"  /> */}
+          <BarItem onPress={this.handleHide} name="arrow-expand-down" text="隐藏"  />
         </Animated.View>
         <Animated.View style={[ styles.minBar, { bottom: minY }]}>
-          <MinBarItem name="arrow-left" size={24}  />
-          <MinBarItem onPress={this.handleShow} name="apps" size={24}  />
-          <MinBarItem name="arrow-right" size={24}  />
+          <MinBarItem name={popupBar ? 'loop' : 'arrow-left'} size={24} onPress={popupBar ? this.handleReload : this.handleBack} />
+          <MinBarItem name="apps" size={24} disabled={popupBar} onPress={this.handleShow} />
+          <MinBarItem name={popupBar ? 'import' : 'arrow-right'} size={24} onPress={popupBar ? this.handlePopToTop : this.handleForward} />
         </Animated.View>
       </View>
     );

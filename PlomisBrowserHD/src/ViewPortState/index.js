@@ -2,10 +2,6 @@
 import fs from 'flystore';
 
 
-const Tabs = fs( '@ViewPortTabs' );
-const State = fs( '@ViewPortState' );
-const History = fs( '@ViewPortHistory' );
-
-export default {
-  History, State, Tabs
-};
+export const Tabs = fs( '@ViewPortTabs' );
+export const State = fs( '@ViewPortState' );
+export const History = fs( '@ViewPortHistory' );
