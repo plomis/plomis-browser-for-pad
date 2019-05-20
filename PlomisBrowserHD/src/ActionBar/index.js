@@ -2,7 +2,7 @@
 
 import React, { Component } from 'react';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { Animated, StyleSheet, View, Text, TouchableOpacity, Easing } from 'react-native';
+import { Animated, StyleSheet, View, Text, TouchableOpacity, TouchableWithoutFeedback, Easing } from 'react-native';
 import { History, Tabs } from '../ViewPortState';
 
 
@@ -56,12 +56,14 @@ class MinBarItem extends Component<MinBarItemProps> {
 }
 
 type Props = {
-  style: any
+  style: any,
+  children: any
 };
 type State = {
   y: any,
   minY: any,
-  popupBar: boolean
+  popupBar: boolean,
+  fullScreen: boolean
 };
 class ActionBar extends Component<Props, State> {
 
@@ -70,7 +72,8 @@ class ActionBar extends Component<Props, State> {
   state = {
     y: new Animated.Value( -98 ),
     minY: new Animated.Value( -44 ),
-    popupBar: false
+    popupBar: false,
+    fullScreen: false
   };
 
   componentDidMount() {
@@ -132,6 +135,10 @@ class ActionBar extends Component<Props, State> {
     this.setState({ popupBar: false });
   }
 
+  handleGoHome = () => {
+    Tabs.dispense( 'home' );
+  }
+
   handleAddTabs = () => {
     this.tabsAdd = Tabs.watch( 'add', () => {
       this.setState({ popupBar: true });
@@ -139,11 +146,39 @@ class ActionBar extends Component<Props, State> {
     });
   };
 
+  handleFullscreen = () => {
+    const { fullScreen, popupBar } = this.state;
+    if ( !fullScreen ) {
+      this.state.fullScreen = true;
+      Animated.timing( this.state.y, {
+        toValue: -98,
+        easing:  Easing.out( Easing.exp )
+      }).start();
+      Animated.timing( this.state.minY, {
+        toValue: -44,
+        easing:  Easing.out( Easing.exp )
+      }).start();
+    } else if ( popupBar ) {
+      this.state.fullScreen = false;
+      Animated.timing( this.state.minY, {
+        toValue: 0,
+        easing:  Easing.out( Easing.exp )
+      }).start();
+    } else {
+      this.state.fullScreen = false;
+      Animated.timing( this.state.minY, {
+        toValue: 0,
+        easing:  Easing.out( Easing.exp )
+      }).start();
+    }
+  };
+
   render() {
     const { y, minY, popupBar } = this.state;
-    const { style } = this.props;
+    const { style, children } = this.props;
     return (
       <View style={style}>
+        {children}
         <Animated.View style={[ styles.bar, { bottom: y }]}>
           <BarItem name="arrow-left" text="后退" onPress={this.handleBack}  />
           <BarItem name="arrow-right" text="前进" onPress={this.handleForward} />
@@ -151,7 +186,7 @@ class ActionBar extends Component<Props, State> {
           {/* <BarItem active name="clock-outline" text="历史记录" /> */}
           <BarItem name="loop" text="刷新" onPress={this.handleReload} />
           {/* <BarItem name="selection-drag" text="截图分享"  /> */}
-          {/* <BarItem name="home" text="返回" onPress={this.handlePopToTop} /> */}
+          {/* <BarItem name="home" text="首页" onPress={this.handleGoHome} /> */}
           {/* <BarItem name="settings-outline" text="系统设置"  /> */}
           <BarItem onPress={this.handleHide} name="arrow-expand-down" text="隐藏"  />
         </Animated.View>
@@ -160,6 +195,9 @@ class ActionBar extends Component<Props, State> {
           <MinBarItem name="apps" size={24} disabled={popupBar} onPress={this.handleShow} />
           <MinBarItem name={popupBar ? 'import' : 'arrow-right'} size={24} onPress={popupBar ? this.handlePopToTop : this.handleForward} />
         </Animated.View>
+        <TouchableWithoutFeedback onPress={this.handleFullscreen}>
+          <View style={styles.corner} />
+        </TouchableWithoutFeedback>
       </View>
     );
   }
@@ -172,11 +210,12 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     position: 'absolute',
     backgroundColor: '#373945',
-    flexDirection: 'row',
     justifyContent: 'center',
+    flexDirection: 'row',
     alignItems: 'center',
     paddingRight: 22,
-    paddingLeft: 22
+    paddingLeft: 22,
+    zIndex: 10
   },
   item: {
     width: 64,
@@ -209,12 +248,21 @@ const styles = StyleSheet.create({
     backgroundColor: '#373945',
     flexDirection: 'row',
     paddingRight: 8,
-    paddingLeft: 8
+    paddingLeft: 8,
+    zIndex: 10
   },
   minItem: {
     width: 60,
     height: 44,
     textAlign: 'center'
+  },
+  corner: {
+    height: 120,
+    width: 20,
+    // left: 0,
+    bottom: 0,
+    position: 'absolute',
+    zIndex: 9
   }
 });
 

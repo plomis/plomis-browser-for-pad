@@ -6,9 +6,16 @@ export default `
     var origin = location.origin;
     window.open = function( url, opt ) {
       if ( opt !== '_self' ) {
-        window.ReactNativeWebView.postMessage( origin + url );
+        window.ReactNativeWebView.postMessage( JSON.stringify({
+          url: url,
+          location: location
+        }));
+        return {
+          location: {},
+          document: {}
+        };
       } else {
-        open( url, '_self' );
+        return open( url, '_self' );
       }
     }
   })();

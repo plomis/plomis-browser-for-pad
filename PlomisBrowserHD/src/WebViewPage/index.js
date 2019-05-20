@@ -1,10 +1,11 @@
 // @flow
 
 
+import URI from 'urijs';
 import React, { Component } from 'react';
 import { WebView } from 'react-native-webview';
 import { withNavigationFocus, StackActions } from 'react-navigation';
-import { StyleSheet, View, Button, Text, Platform } from 'react-native';
+import { StyleSheet, View, Text, Platform } from 'react-native';
 // import LoadingPage from '../LoadingPage';
 // import LoadErrorPage from '../LoadErrorPage';
 import { History, Tabs } from '../ViewPortState';
@@ -16,6 +17,10 @@ import jsForInjection from './injectionString';
 
 // console.log(`height:${height},width:${dp2px(width)}`)
 // console.log("Dimensions.get( 'window' ):", Dimensions.get( 'window' ))
+
+const DefaultUrl = 'https://www.thingspower.com.cn/';
+// const DefaultUrl = 'https://baidu.com';
+
 
 type Props = {
   navigation: any,
@@ -33,12 +38,12 @@ class ViewPage extends Component<Props, State> {
   historyForward: any;
   historyReload: any;
   tabsPop: any;
+  tabsHome: any;
   didFocusSubscription: any;
 
   constructor( props: Props ) {
     super( props );
     this.webViewRef = React.createRef();
-    const DefaultUrl = 'https://emms.thingspower.com.cn/emms/face';
     this.state = {
       current: { url: this.props.navigation.getParam( 'url' ) || DefaultUrl },
       uuid: this.props.navigation.state.key
@@ -67,7 +72,16 @@ class ViewPage extends Component<Props, State> {
     remove( this.historyBack );
     remove( this.historyForward );
     remove( this.tabsPop );
+    remove( this.tabsHome );
     remove( this.didFocusSubscription );
+  };
+
+  handleHome = () => {
+    this.tabsHome = Tabs.watch( 'home', () => {
+      if ( this.props.isFocused ) {
+        this.setState({ current: { url: DefaultUrl }});
+      }
+    });
   };
 
   handleDidFocus = () => {
@@ -141,12 +155,14 @@ class ViewPage extends Component<Props, State> {
   };
 
   handleMessage = ( event: any ) => {
-    console.log( "url:", event.nativeEvent.data );
+    const data = JSON.parse( event.nativeEvent.data );
+    // console.log( "url:", data.url );
+    const uri = new URI( data.url, data.location.href );
     Tabs.dispense( 'add' );
     this.props.navigation.dispatch( StackActions.push({
       routeName: 'Viewer',
       params: {
-        url: event.nativeEvent.data
+        url: uri.href()
       }
     }));
   };
@@ -181,6 +197,7 @@ class ViewPage extends Component<Props, State> {
       javaScriptEnabled: true,
       domStorageEnabled: true,
       geolocationEnabled: false,
+      androidHardwareAccelerationDisabled: false,
       // allowUniversalAccessFromFileURLs: false,
       // allowsInlineMediaPlayback: false,
       automaticallyAdjustContentInsets: false,
@@ -190,7 +207,8 @@ class ViewPage extends Component<Props, State> {
     if ( Platform.OS === "ios" ) {
       Object.assign( props, {
         useWebKit: true,
-        bounces: false
+        bounces: false,
+        dataDetectorTypes: 'none'
       });
     }
     // 缩放页面适应
@@ -228,7 +246,10 @@ class ViewPage extends Component<Props, State> {
 
 const styles = StyleSheet.create({
   viewer: {
-    flex: 1
+    flex: 1,
+    position: 'absolute',
+    height: '100%',
+    width: '100%'
   }
 });
 

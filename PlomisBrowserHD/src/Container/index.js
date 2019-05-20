@@ -20,12 +20,11 @@ class Conainer extends Component<Props, State> {
   render() {
     const { url } = this.state;
     return (
-      <View style={styles.container}>
+      <ActionBar style={styles.container}>
         <View style={styles.viewPort}>
           <ViewPort url={url} />
         </View>
-        <ActionBar style={styles.action} />
-      </View>
+      </ActionBar>
     );
   }
 }
@@ -33,15 +32,9 @@ class Conainer extends Component<Props, State> {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#2E303A'
-  },
-  action: {
-    bottom: 0,
-    width: '100%',
+    backgroundColor: '#2E303A',
     justifyContent: 'center',
-    flexDirection: 'row',
-    position: 'absolute',
-    zIndex: 10
+    flexDirection: 'row'
   },
   viewPort: {
     flex: 1,

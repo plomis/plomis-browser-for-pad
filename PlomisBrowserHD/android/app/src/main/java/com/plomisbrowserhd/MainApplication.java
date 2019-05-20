@@ -3,6 +3,7 @@ package com.plomisbrowserhd;
 import android.app.Application;
 
 import com.facebook.react.ReactApplication;
+import org.wonday.orientation.OrientationPackage;
 import com.reactnativecommunity.webview.RNCWebViewPackage;
 import com.swmansion.rnscreens.RNScreensPackage;
 import com.oblador.vectoricons.VectorIconsPackage;
@@ -28,6 +29,7 @@ public class MainApplication extends Application implements ReactApplication {
     protected List<ReactPackage> getPackages() {
       return Arrays.<ReactPackage>asList(
           new MainReactPackage(),
+            new OrientationPackage(),
             new RNCWebViewPackage(),
             new RNScreensPackage(),
             new VectorIconsPackage(),
