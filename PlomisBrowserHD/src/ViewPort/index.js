@@ -4,18 +4,28 @@
 import { createAppContainer, createStackNavigator } from 'react-navigation';
 // import createAnimatedSwitchNavigator from 'react-navigation-animated-switch';
 // import { Transition } from 'react-native-reanimated';
-import ViewPortController from '../ViewPortController';
+// import ViewPortController from '../ViewPortController';
 // import type { ViewPortProps } from '../ViewPortController';
 import WebViewPage from '../WebViewPage';
 
 
+const DefaultUrl = 'https://www.thingspower.com.cn/';
 const ViewPortStack = createStackNavigator({
   Viewer: {
-    screen: WebViewPage
+    screen: WebViewPage,
+    params: {
+      home: DefaultUrl
+    }
   }
 }, {
   initialRouteName: 'Viewer',
-  headerMode: 'none'
+  initialRouteParams: {
+    url: DefaultUrl
+  },
+  headerMode: 'none',
+  cardStyle: {
+    backgroundColor: '#2E303A'
+  }
 });
 
 const ViewPortContainer = createAppContainer( ViewPortStack );
@@ -29,4 +39,4 @@ const ViewPortContainer = createAppContainer( ViewPortStack );
 //   }
 // }
 
-export default ViewPortController( ViewPortContainer );
+export default ViewPortContainer;

@@ -8,6 +8,7 @@ import { withNavigationFocus, StackActions } from 'react-navigation';
 import { StyleSheet, View, Text, Platform } from 'react-native';
 // import LoadingPage from '../LoadingPage';
 // import LoadErrorPage from '../LoadErrorPage';
+import ViewPortError from '../ViewPortError';
 import { History, Tabs } from '../ViewPortState';
 import jsForInjection from './injectionString';
 
@@ -18,7 +19,7 @@ import jsForInjection from './injectionString';
 // console.log(`height:${height},width:${dp2px(width)}`)
 // console.log("Dimensions.get( 'window' ):", Dimensions.get( 'window' ))
 
-const DefaultUrl = 'https://www.thingspower.com.cn/';
+// const DefaultUrl = 'https://www.thingspower.com.cn/';
 // const DefaultUrl = 'https://baidu.com';
 
 
@@ -44,8 +45,9 @@ class ViewPage extends Component<Props, State> {
   constructor( props: Props ) {
     super( props );
     this.webViewRef = React.createRef();
+    const url = this.props.navigation.getParam( 'url' );
     this.state = {
-      current: { url: this.props.navigation.getParam( 'url' ) || DefaultUrl },
+      current: { url },
       uuid: this.props.navigation.state.key
     };
     History.set( this.state.uuid, []);
@@ -79,7 +81,8 @@ class ViewPage extends Component<Props, State> {
   handleHome = () => {
     this.tabsHome = Tabs.watch( 'home', () => {
       if ( this.props.isFocused ) {
-        this.setState({ current: { url: DefaultUrl }});
+        const home = this.props.navigation.getParam( 'home' );
+        this.setState({ current: { url: home }});
       }
     });
   };
@@ -150,21 +153,35 @@ class ViewPage extends Component<Props, State> {
     console.log( 'Error' );
   };
 
-  handleRenderError = () => {
-    console.log( 'RenderError' );
+  handleRenderError = ( errorName ) => {
+    return <ViewPortError name={errorName} />;
   };
 
   handleMessage = ( event: any ) => {
     const data = JSON.parse( event.nativeEvent.data );
-    // console.log( "url:", data.url );
-    const uri = new URI( data.url, data.location.href );
-    Tabs.dispense( 'add' );
-    this.props.navigation.dispatch( StackActions.push({
-      routeName: 'Viewer',
-      params: {
-        url: uri.href()
+    let uri = null;
+    if ( data.type === 'add' ) {
+      Tabs.dispense( 'add' );
+      try {
+        uri = new URI( data.url, data.location.href );
+        this.props.navigation.dispatch( StackActions.push({
+          routeName: 'Viewer',
+          params: {
+            url: uri.href()
+          }
+        }));
+      } catch( e ) {
+        this.props.navigation.dispatch( StackActions.push({
+          routeName: 'Viewer',
+          params: {
+            url: ''
+          }
+        }));
       }
-    }));
+    } else if ( data.type === 'href' ) {console.log("1:", 1)
+      console.log("data.url:", data.url)
+      History.dispense( 'url',  data.url );
+    }
   };
 
   handleNavigationStateChange = ( state: any ) => {
@@ -184,12 +201,6 @@ class ViewPage extends Component<Props, State> {
       </View>
     );
   };
-
-  // renderError = () => {
-  //   return (
-  //     <LoadErrorPage />
-  //   );
-  // };
 
   render() {
 
@@ -219,7 +230,7 @@ class ViewPage extends Component<Props, State> {
       });
     }
 
-    return (
+    return props.source.uri ? (
       <WebView
         {...props}
         style={styles.viewer}
@@ -236,11 +247,11 @@ class ViewPage extends Component<Props, State> {
         // renderLoading={this.renderLoading}
 
         // 加载错误页面
-        // renderError={this.renderError}
+        renderError={this.handleRenderError}
 
         // load 时注入 js 代码
         injectedJavaScript={jsForInjection} />
-    );
+    ) : <View style={styles.blank} />;
   }
 }
 
@@ -250,6 +261,10 @@ const styles = StyleSheet.create({
     position: 'absolute',
     height: '100%',
     width: '100%'
+  },
+  blank: {
+    flex: 1,
+    backgroundColor: '#fff'
   }
 });
 
