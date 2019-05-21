@@ -2,31 +2,31 @@
 
 import React, { Component } from 'react';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { Animated, StyleSheet, View, Text, TouchableOpacity, TouchableWithoutFeedback, Easing } from 'react-native';
-import { History, Tabs } from '../ViewPortState';
+import { Animated, StyleSheet, View, /* Text, */ TouchableOpacity, TouchableWithoutFeedback, Easing } from 'react-native';
+import { History, Tabs, State } from '../ViewPortState';
 
 
-type BarItemProps = {
-  name: any,
-  text: string,
-  active?: boolean,
-  onPress?: () => void
-};
-class BarItem extends Component<BarItemProps> {
-  render() {
-    const { active, name, text, onPress } = this.props;
-    return (
-      <TouchableOpacity activeOpacity={0.6} onPress={onPress}>
-        <View style={styles.item}>
-          <MaterialCommunityIcons
-            size={32} name={name}
-            style={[styles.itemIcon].concat( active ? [styles.itemActive] : [])} />
-          <Text style={[styles.itemText].concat( active ? [styles.itemActive] : [])}>{text}</Text>
-        </View>
-      </TouchableOpacity>
-    );
-  }
-}
+// type BarItemProps = {
+//   name: any,
+//   text: string,
+//   active?: boolean,
+//   onPress?: () => void
+// };
+// class BarItem extends Component<BarItemProps> {
+//   render() {
+//     const { active, name, text, onPress } = this.props;
+//     return (
+//       <TouchableOpacity activeOpacity={0.6} onPress={onPress}>
+//         <View style={styles.item}>
+//           <MaterialCommunityIcons
+//             size={32} name={name}
+//             style={[styles.itemIcon].concat( active ? [styles.itemActive] : [])} />
+//           <Text style={[styles.itemText].concat( active ? [styles.itemActive] : [])}>{text}</Text>
+//         </View>
+//       </TouchableOpacity>
+//     );
+//   }
+// }
 
 type MinBarItemProps = {
   name: any,
@@ -55,33 +55,46 @@ class MinBarItem extends Component<MinBarItemProps> {
   }
 }
 
-type Props = {
+type PropsType = {
   style: any,
   children: any
 };
-type State = {
-  y: any,
+type StateType = {
   minY: any,
-  popupBar: boolean,
-  fullScreen: boolean
+  occurError: boolean,
+  initialized: boolean,
+  canGoBack: boolean
 };
-class ActionBar extends Component<Props, State> {
+class ActionBar extends Component<PropsType, StateType> {
 
   tabsAdd: any;
+  StateError: any;
+  StateLoad: any;
+  TabsChange: any;
 
   state = {
-    y: new Animated.Value( -98 ),
     minY: new Animated.Value( -44 ),
-    popupBar: false,
-    fullScreen: false
+    occurError: false,
+    initialized: false,
+    canGoBack: false
   };
 
   componentDidMount() {
-    this.handleAddTabs();
-    Animated.timing( this.state.minY, {
-      toValue: 0,
-      easing:  Easing.out( Easing.cubic )
-    }).start();
+    this.StateError = State.watch( 'error', () => {
+      this.setState({ occurError: true });
+      this.handleHide();
+    });
+    this.StateLoad = State.watch( 'load', () => {
+      if ( this.state.initialized === false ) {
+        this.state.initialized = true;
+        this.handleShowBar();
+      }
+    });
+    this.TabsChange = Tabs.watch( 'tabsChange', () => {
+      const current = Tabs.get( 'current' );
+      const all = Tabs.get( 'all' );
+      this.setState({ canGoBack: current !== all[0] });
+    });
   }
 
   componentWillUnmount = () => {
@@ -91,29 +104,13 @@ class ActionBar extends Component<Props, State> {
       }
     }
     remove( this.tabsAdd );
-  };
-
-  handleShow = () => {
-    const { popupBar } = this.state;
-    if ( !popupBar ) {
-      Animated.timing( this.state.y, {
-        toValue: 17,
-        easing:  Easing.out( Easing.exp )
-      }).start();
-      Animated.timing( this.state.minY, {
-        toValue: -44,
-        easing:  Easing.out( Easing.exp )
-      }).start();
-    }
+    remove( this.StateError );
+    remove( this.TabsChange );
   };
 
   handleHide = () => {
-    Animated.timing( this.state.y, {
-      toValue: -98,
-      easing:  Easing.out( Easing.exp )
-    }).start();
     Animated.timing( this.state.minY, {
-      toValue: 0,
+      toValue: -44,
       easing:  Easing.out( Easing.exp )
     }).start();
   };
@@ -130,42 +127,22 @@ class ActionBar extends Component<Props, State> {
     History.dispense( 'reload' );
   }
 
-  handlePopToTop = () => {
+  handlePop = () => {
     Tabs.dispense( 'pop' );
-    this.setState({ popupBar: false });
   }
 
   handleGoHome = () => {
     Tabs.dispense( 'home' );
   }
 
-  handleAddTabs = () => {
-    this.tabsAdd = Tabs.watch( 'add', () => {
-      this.setState({ popupBar: true });
-      this.handleHide();
-    });
-  };
+  // handleAddTabs = () => {
+  //   this.tabsAdd = Tabs.watch( 'add', () => {
+  //     this.handleHide();
+  //   });
+  // };
 
-  handleFullscreen = () => {
-    const { fullScreen, popupBar } = this.state;
-    if ( !fullScreen ) {
-      this.state.fullScreen = true;
-      Animated.timing( this.state.y, {
-        toValue: -98,
-        easing:  Easing.out( Easing.exp )
-      }).start();
-      Animated.timing( this.state.minY, {
-        toValue: -44,
-        easing:  Easing.out( Easing.exp )
-      }).start();
-    } else if ( popupBar ) {
-      this.state.fullScreen = false;
-      Animated.timing( this.state.minY, {
-        toValue: 0,
-        easing:  Easing.out( Easing.exp )
-      }).start();
-    } else {
-      this.state.fullScreen = false;
+  handleShowBar = () => {
+    if ( !this.state.occurError ) {
       Animated.timing( this.state.minY, {
         toValue: 0,
         easing:  Easing.out( Easing.exp )
@@ -174,28 +151,31 @@ class ActionBar extends Component<Props, State> {
   };
 
   render() {
-    const { y, minY, popupBar } = this.state;
+
+    const { minY, canGoBack } = this.state;
     const { style, children } = this.props;
+
     return (
       <View style={style}>
         {children}
-        <Animated.View style={[ styles.bar, { bottom: y }]}>
+        {/* <Animated.View style={[ styles.bar, { bottom: y }]}>
           <BarItem name="arrow-left" text="后退" onPress={this.handleBack}  />
           <BarItem name="arrow-right" text="前进" onPress={this.handleForward} />
-          {/* <BarItem name="reorder-horizontal" text="最近打开"  /> */}
-          {/* <BarItem active name="clock-outline" text="历史记录" /> */}
           <BarItem name="loop" text="刷新" onPress={this.handleReload} />
-          {/* <BarItem name="selection-drag" text="截图分享"  /> */}
-          {/* <BarItem name="home" text="首页" onPress={this.handleGoHome} /> */}
-          {/* <BarItem name="settings-outline" text="系统设置"  /> */}
           <BarItem onPress={this.handleHide} name="arrow-expand-down" text="隐藏"  />
-        </Animated.View>
+        </Animated.View> */}
         <Animated.View style={[ styles.minBar, { bottom: minY }]}>
-          <MinBarItem name={popupBar ? 'loop' : 'arrow-left'} size={24} onPress={popupBar ? this.handleReload : this.handleBack} />
-          <MinBarItem name="apps" size={24} disabled={popupBar} onPress={this.handleShow} />
-          <MinBarItem name={popupBar ? 'import' : 'arrow-right'} size={24} onPress={popupBar ? this.handlePopToTop : this.handleForward} />
+          {/* <BarItem active name="clock-outline" text="历史记录" /> */}
+          {/* <BarItem name="selection-drag" text="截图分享"  /> */}
+          {/* <BarItem name="settings-outline" text="系统设置"  /> */}
+          <MinBarItem name="arrow-left" size={24} onPress={this.handleBack} />
+          <MinBarItem name="arrow-right" size={24} onPress={this.handleForward} />
+          <MinBarItem name="loop" text="刷新" onPress={this.handleReload} />
+          {/* <MinBarItem name="home" text="首页" onPress={this.handleGoHome} /> */}
+          <MinBarItem name={'import'} size={24} disabled={!canGoBack} onPress={this.handlePop} />
+          <MinBarItem onPress={this.handleHide} name="arrow-expand-down" text="隐藏"  />
         </Animated.View>
-        <TouchableWithoutFeedback onPress={this.handleFullscreen}>
+        <TouchableWithoutFeedback onPress={this.handleShowBar}>
           <View style={styles.corner} />
         </TouchableWithoutFeedback>
       </View>
@@ -257,8 +237,8 @@ const styles = StyleSheet.create({
     textAlign: 'center'
   },
   corner: {
-    height: 120,
-    width: 20,
+    width: 280,
+    height: 25,
     // left: 0,
     bottom: 0,
     position: 'absolute',

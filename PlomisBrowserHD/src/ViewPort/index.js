@@ -11,6 +11,12 @@ import WebViewPage from '../WebViewPage';
 
 const DefaultUrl = 'https://www.thingspower.com.cn/';
 const ViewPortStack = createStackNavigator({
+  MainViewer: {
+    screen: WebViewPage,
+    params: {
+      home: DefaultUrl
+    }
+  },
   Viewer: {
     screen: WebViewPage,
     params: {

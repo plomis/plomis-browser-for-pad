@@ -9,7 +9,7 @@ import { StyleSheet, View, Text, Platform } from 'react-native';
 // import LoadingPage from '../LoadingPage';
 // import LoadErrorPage from '../LoadErrorPage';
 import ViewPortError from '../ViewPortError';
-import { History, Tabs } from '../ViewPortState';
+import { History, Tabs, State } from '../ViewPortState';
 import jsForInjection from './injectionString';
 
 // const dp2px = dp => PixelRatio.getPixelSizeForLayoutSize( dp );
@@ -23,15 +23,15 @@ import jsForInjection from './injectionString';
 // const DefaultUrl = 'https://baidu.com';
 
 
-type Props = {
+type PropsType = {
   navigation: any,
   isFocused: boolean
 };
-type State = {
+type StateType = {
   uuid: string,
   current: any
 };
-class ViewPage extends Component<Props, State> {
+class ViewPage extends Component<PropsType, StateType> {
 
   webViewRef: any;
   historyUrl: any;
@@ -40,9 +40,8 @@ class ViewPage extends Component<Props, State> {
   historyReload: any;
   tabsPop: any;
   tabsHome: any;
-  didFocusSubscription: any;
 
-  constructor( props: Props ) {
+  constructor( props: PropsType ) {
     super( props );
     this.webViewRef = React.createRef();
     const url = this.props.navigation.getParam( 'url' );
@@ -54,6 +53,7 @@ class ViewPage extends Component<Props, State> {
     Tabs.set( 'current', this.state.uuid );
     const allTabs = Tabs.get( 'all' ) || [];
     Tabs.set( 'all', [ ...allTabs, this.state.uuid ]);
+    Tabs.dispense( 'tabsChange' );
   }
 
   componentDidMount = () => {
@@ -62,6 +62,11 @@ class ViewPage extends Component<Props, State> {
     this.handleForward();
     this.handlePop();
     this.handleReload();
+    this.handleHome();
+  };
+
+  shouldComponentUpdate = ( _, nextState ) => {
+    return this.state.current.url !== nextState.current.url;
   };
 
   componentWillUnmount = () => {
@@ -75,23 +80,25 @@ class ViewPage extends Component<Props, State> {
     remove( this.historyForward );
     remove( this.tabsPop );
     remove( this.tabsHome );
-    remove( this.didFocusSubscription );
   };
 
   handleHome = () => {
     this.tabsHome = Tabs.watch( 'home', () => {
       if ( this.props.isFocused ) {
         const home = this.props.navigation.getParam( 'home' );
-        this.setState({ current: { url: home }});
+        this.state.current.url = home;
+        this.forceUpdate(() => {
+          this.webViewRef.current.reload();
+        });
       }
     });
   };
 
-  handleDidFocus = () => {
-    this.didFocusSubscription = this.props.navigation.addListener( 'didFocus', () => {
-      Tabs.set( 'current', this.state.uuid );
-    });
-  };
+  // handleDidFocus = () => {
+  //   this.didFocusSubscription = this.props.navigation.addListener( 'didFocus', () => {
+  //     Tabs.set( 'current', this.state.uuid );
+  //   });
+  // };
 
   handleUrl = () => {
     this.historyUrl = History.watch( 'url', ( url ) => {
@@ -132,25 +139,26 @@ class ViewPage extends Component<Props, State> {
         const allTabs = Tabs.get( 'all' );
         allTabs.pop();
         Tabs.set( 'all', [...allTabs]);
+        Tabs.set( 'current', allTabs[ allTabs.length - 1 ]);
+        Tabs.dispense( 'tabsChange' );
         navigation.pop();
       }
     });
   };
 
   handleLoad = () => {
-
+    State.dispense( 'load' );
   };
 
   handleLoadEnd = () => {
-
   };
 
   handleLoadStart = ( state: any ) => {
     console.log( "state:", state );
   };
 
-  handleError = () => {
-    console.log( 'Error' );
+  handleError = ( error ) => {
+    State.dispense( 'error', error );
   };
 
   handleRenderError = ( errorName ) => {
@@ -161,25 +169,18 @@ class ViewPage extends Component<Props, State> {
     const data = JSON.parse( event.nativeEvent.data );
     let uri = null;
     if ( data.type === 'add' ) {
-      Tabs.dispense( 'add' );
       try {
-        uri = new URI( data.url, data.location.href );
-        this.props.navigation.dispatch( StackActions.push({
-          routeName: 'Viewer',
-          params: {
-            url: uri.href()
-          }
-        }));
+        uri = ( new URI( data.url, data.baseUrl )).href();
       } catch( e ) {
-        this.props.navigation.dispatch( StackActions.push({
-          routeName: 'Viewer',
-          params: {
-            url: ''
-          }
-        }));
+        uri = '';
       }
-    } else if ( data.type === 'href' ) {console.log("1:", 1)
-      console.log("data.url:", data.url)
+      this.props.navigation.dispatch( StackActions.push({
+        routeName: 'Viewer',
+        params: {
+          url: uri
+        }
+      }));
+    } else if ( data.type === 'href' ) {
       History.dispense( 'url',  data.url );
     }
   };
@@ -187,10 +188,6 @@ class ViewPage extends Component<Props, State> {
   handleNavigationStateChange = ( state: any ) => {
     this.state.current = Object.assign({}, state );
   };
-
-  // handleShouldStartLoadWithRequest = ( request: any ) => {
-  //   return true;
-  // };
 
   renderLoading = () => {
     return (
@@ -207,7 +204,7 @@ class ViewPage extends Component<Props, State> {
     const props: any = {
       javaScriptEnabled: true,
       domStorageEnabled: true,
-      geolocationEnabled: false,
+      geolocationEnabled: true,
       androidHardwareAccelerationDisabled: false,
       // allowUniversalAccessFromFileURLs: false,
       // allowsInlineMediaPlayback: false,
@@ -229,7 +226,7 @@ class ViewPage extends Component<Props, State> {
         // scalesPageToFit: false
       });
     }
-
+console.log("props.source.uri:", props.source.uri)
     return props.source.uri ? (
       <WebView
         {...props}
