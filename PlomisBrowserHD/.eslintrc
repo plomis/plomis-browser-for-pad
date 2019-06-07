@@ -12,7 +12,7 @@
       "onlyFilesWithFlowAnnotation": true
     }
   },
-  rules: {
+  "rules": {
     "react/no-direct-mutation-state": [0]
   }
 }
