@@ -87,9 +87,7 @@ class ViewPage extends Component<PropsType, StateType> {
       if ( this.props.isFocused ) {
         const home = this.props.navigation.getParam( 'home' );
         this.state.current.url = home;
-        this.forceUpdate(() => {
-          this.webViewRef.current.reload();
-        });
+        this.webViewRef.current.injectJavaScript( `location.href = '${home}'` );
       }
     });
   };

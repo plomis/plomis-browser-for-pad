@@ -171,7 +171,7 @@ class ActionBar extends Component<PropsType, StateType> {
           <MinBarItem name="arrow-left" size={24} onPress={this.handleBack} />
           <MinBarItem name="arrow-right" size={24} onPress={this.handleForward} />
           <MinBarItem name="loop" text="刷新" onPress={this.handleReload} />
-          {/* <MinBarItem name="home" text="首页" onPress={this.handleGoHome} /> */}
+          <MinBarItem name="home-outline" text="首页" onPress={this.handleGoHome} />
           <MinBarItem name={'import'} size={24} disabled={!canGoBack} onPress={this.handlePop} />
           <MinBarItem onPress={this.handleHide} name="arrow-expand-down" text="隐藏"  />
         </Animated.View>
