@@ -239,7 +239,6 @@ const styles = StyleSheet.create({
   corner: {
     width: 280,
     height: 25,
-    // left: 0,
     bottom: 0,
     position: 'absolute',
     zIndex: 9

@@ -224,7 +224,7 @@ class ViewPage extends Component<PropsType, StateType> {
         // scalesPageToFit: false
       });
     }
-console.log("props.source.uri:", props.source.uri)
+
     return props.source.uri ? (
       <WebView
         {...props}
