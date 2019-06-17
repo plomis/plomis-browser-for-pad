@@ -3,6 +3,7 @@ package com.plomisbrowserhd;
 import android.app.Application;
 
 import com.facebook.react.ReactApplication;
+import com.microsoft.codepush.react.CodePush;
 import org.wonday.orientation.OrientationPackage;
 import com.reactnativecommunity.webview.RNCWebViewPackage;
 import com.swmansion.rnscreens.RNScreensPackage;
@@ -20,6 +21,12 @@ import java.util.List;
 public class MainApplication extends Application implements ReactApplication {
 
   private final ReactNativeHost mReactNativeHost = new ReactNativeHost(this) {
+
+    @Override
+    protected String getJSBundleFile() {
+      return CodePush.getJSBundleFile();
+    }
+
     @Override
     public boolean getUseDeveloperSupport() {
       return BuildConfig.DEBUG;
@@ -28,13 +35,15 @@ public class MainApplication extends Application implements ReactApplication {
     @Override
     protected List<ReactPackage> getPackages() {
       return Arrays.<ReactPackage>asList(
-          new MainReactPackage(),
-            new OrientationPackage(),
-            new RNCWebViewPackage(),
-            new RNScreensPackage(),
-            new VectorIconsPackage(),
-            new RNGestureHandlerPackage(),
-            new SplashScreenReactPackage()
+        new MainReactPackage(),
+        // new CodePush(getResources().getString(R.string.reactNativeCodePush_androidDeploymentKey), getApplicationContext(), BuildConfig.DEBUG),
+        new CodePush(BuildConfig.CODEPUSH_KEY, getApplicationContext(), BuildConfig.DEBUG),
+        new OrientationPackage(),
+        new RNCWebViewPackage(),
+        new RNScreensPackage(),
+        new VectorIconsPackage(),
+        new RNGestureHandlerPackage(),
+        new SplashScreenReactPackage()
       );
     }
 

@@ -4,7 +4,6 @@ import React, { Component } from 'react';
 import { StyleSheet, View } from 'react-native';
 import ActionBar from '../ActionBar';
 import ViewPort from '../ViewPort';
-// import { colors } from '../Themes/styles';
 
 
 type Props = {};
