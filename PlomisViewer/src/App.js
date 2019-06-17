@@ -5,7 +5,7 @@ import codePush from "react-native-code-push";
 import SplashScreen from 'react-native-splash-screen';
 import Orientation from 'react-native-orientation-locker';
 import { createAppContainer, createStackNavigator } from 'react-navigation';
-import { StatusBar, StyleSheet, View, Alert/* , AlertIOS, Platform */ } from 'react-native';
+import { StatusBar, StyleSheet, View, Alert } from 'react-native';
 import { Provider } from '@ant-design/react-native';
 import Container from './Container';
 
@@ -18,7 +18,6 @@ const AppStack = createStackNavigator({
 });
 
 const AppContainer = createAppContainer( AppStack );
-// const AppAlert = Platform.OS === 'ios' ? Alert : AlertIOS;
 
 
 type PropsType = {};
@@ -41,15 +40,30 @@ class App extends Component<PropsType> {
       case codePush.SyncStatus.UPDATE_INSTALLED:
         this.installedAlert();
         break;
+      case codePush.SyncStatus.UP_TO_DATE:
+        codePush.allowRestart();
+        break;
       // case codePush.SyncStatus.CHECKING_FOR_UPDATE:
       // case codePush.SyncStatus.DOWNLOADING_PACKAGE:
       // case codePush.SyncStatus.AWAITING_USER_ACTION:
       // case codePush.SyncStatus.INSTALLING_UPDATE:
-      // case codePush.SyncStatus.UP_TO_DATE:
       // case codePush.SyncStatus.UPDATE_IGNORED:
-      // case codePush.SyncStatus.UNKNOWN_ERROR:
-      //   break;
+      case codePush.SyncStatus.UNKNOWN_ERROR:
+        this.errorAlert( '更新检查出错！' );
+        break;
     }
+  };
+
+  errorAlert = ( message ) => {
+    Alert.alert(
+      '错误提示',
+      message,
+      [{
+        text: '知道了',
+        style: 'cancel'
+      }],
+      { cancelable: false }
+    );
   };
 
   installedAlert = () => {
@@ -58,10 +72,14 @@ class App extends Component<PropsType> {
       '更新已经下载完成，是否重启完成更新？',
       [{
         text: '以后',
-        style: 'cancel'
+        style: 'cancel',
+        onPress() {
+          codePush.allowRestart();
+        }
       }, {
         text: '立即重启',
         onPress() {
+          codePush.allowRestart();
           codePush.restartApp();
         }
       }],
@@ -97,17 +115,14 @@ class App extends Component<PropsType> {
         title: '更新提示'
       }
     }, this.codePushStatusDidChange );
-    codePush.allowRestart();
   }
 
   render() {
     return (
-      <Provider>
-        <View style={styles.screen}>
-          <StatusBar hidden={true} />
-          <AppContainer />
-        </View>
-      </Provider>
+      <View style={styles.screen}>
+        <StatusBar hidden={true} />
+        <AppContainer />
+      </View>
     );
   }
 }
@@ -118,4 +133,8 @@ const styles = StyleSheet.create({
   }
 });
 
-export default App;
+export default () => (
+  <Provider>
+    <App />
+  </Provider>
+);

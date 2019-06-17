@@ -8,7 +8,9 @@
     "dev-android": "react-native run-android --appIdSuffix \"debug\"",
     "dev-android-staging": "react-native run-android --variant releaseStaging",
     "build-android": "cd android && ./gradlew assembleRelease",
-    "install-android": "adb install -r ./android/app/releaseStaging/app-releaseStaging.apk",
+    "install-android": "adb install -r ./android/app/build/outputs/apk/release/app-release.apk",
+    "install-android-release": "adb install -r ./android/app/release/app-release.apk",
+    "install-android-staging": "adb install -r ./android/app/releaseStaging/app-releaseStaging.apk",
     "test": "jest"
   },
   "dependencies": {
