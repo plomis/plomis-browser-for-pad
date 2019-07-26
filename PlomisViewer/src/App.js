@@ -1,91 +1,104 @@
 // @flow
 
+import is from 'whatitis';
 import React, { Component } from 'react';
 import codePush from "react-native-code-push";
+import { Provider } from '@ant-design/react-native';
 import SplashScreen from 'react-native-splash-screen';
 import Orientation from 'react-native-orientation-locker';
 import { createAppContainer, createStackNavigator } from 'react-navigation';
-import { StatusBar, StyleSheet, View } from 'react-native';
-import { Provider } from '@ant-design/react-native';
+import { StatusBar, StyleSheet, NativeModules, View, Platform } from 'react-native';
+import { AppProvider } from './utils/AppContext';
+import { State } from './ViewPortState';
 import Container from './Container';
+import Setting from './Setting';
 
 
 const AppStack = createStackNavigator({
-  Home: Container
+  Setting: {
+    screen: Setting
+  },
+  ViewPort: {
+    screen: Container
+  }
 }, {
-  initialRouteName: 'Home',
-  headerMode: 'none'
+  mode: 'modal',
+  headerMode: 'none',
+  initialRouteName: 'ViewPort'
 });
 
 const AppContainer = createAppContainer( AppStack );
 
 
-type PropsType = {};
-
-const codePushOptions = {
+type Props = {};
+@codePush({
   checkFrequency: codePush.CheckFrequency.ON_APP_RESTART
-};
+})
+class App extends Component<Props> {
 
-@codePush( codePushOptions )
-class App extends Component<PropsType> {
+  state = {
+    configLoaded: false,
+    statusBarHidden: true
+  };
 
   componentDidMount() {
-    SplashScreen.hide();
     Orientation.lockToLandscape();
+    this.createListener();
     this.syncImmediate();
+    this.handleUpdate();
   }
 
-  // codePushStatusDidChange = ( syncStatus ) => {
-  //   switch( syncStatus ) {
-  //     case codePush.SyncStatus.UPDATE_INSTALLED:
-  //       this.installedAlert();
-  //       break;
-  //     case codePush.SyncStatus.UP_TO_DATE:
-  //       codePush.allowRestart();
-  //       break;
-  //     // case codePush.SyncStatus.CHECKING_FOR_UPDATE:
-  //     // case codePush.SyncStatus.DOWNLOADING_PACKAGE:
-  //     // case codePush.SyncStatus.AWAITING_USER_ACTION:
-  //     // case codePush.SyncStatus.INSTALLING_UPDATE:
-  //     // case codePush.SyncStatus.UPDATE_IGNORED:
-  //     // case codePush.SyncStatus.UNKNOWN_ERROR:
-  //     //   this.errorAlert( '更新检查出错！' );
-  //     //   break;
-  //   }
-  // };
+  componentWillUnmount() {
+    this.clearListener();
+  }
 
-  // errorAlert = ( message ) => {
-  //   Alert.alert(
-  //     '错误提示',
-  //     message,
-  //     [{
-  //       text: '知道了',
-  //       style: 'cancel'
-  //     }],
-  //     { cancelable: false }
-  //   );
-  // };
+  handleLoad = () => {
+    this.setState({
+      configLoaded: true
+    }, () => SplashScreen.hide());
+  };
 
-  // installedAlert = () => {
-  //   Alert.alert(
-  //     '更新提示',
-  //     '更新已经下载完成，是否重启完成更新？',
-  //     [{
-  //       text: '以后',
-  //       style: 'cancel',
-  //       onPress() {
-  //         codePush.allowRestart();
-  //       }
-  //     }, {
-  //       text: '立即重启',
-  //       onPress() {
-  //         codePush.allowRestart();
-  //         codePush.restartApp();
-  //       }
-  //     }],
-  //     { cancelable: false }
-  //   );
-  // };
+  handleUpdate = () => {
+    if ( Platform.OS === 'ios' ) {
+
+    } else {
+      NativeModules.DownloadApk.downloading(
+        'https://thingspower.com.cn/tpCloud.apk',
+        'tpCloud.apk'
+      );
+    }
+  };
+
+  createListener = () => {
+    this.statusBarToggle = State.watch( 'statusBarToggle', ( hidden ) => {
+      this.setState(( state ) => ({
+        statusBarHidden: is.Boolean( hidden ) ? hidden : !state.statusBarHidden
+      }));
+    });
+  };
+
+  clearListener = () => {
+    if ( this.statusBarToggle ) {
+      this.statusBarToggle.clear();
+      this.statusBarToggle = null;
+    }
+  };
+
+  codePushStatusDidChange = ( syncStatus ) => {
+    switch( syncStatus ) {
+      case codePush.SyncStatus.UPDATE_INSTALLED:
+      case codePush.SyncStatus.UP_TO_DATE:
+      case codePush.SyncStatus.UPDATE_IGNORED:
+      case codePush.SyncStatus.UNKNOWN_ERROR:
+        codePush.allowRestart();
+        break;
+      // case codePush.SyncStatus.CHECKING_FOR_UPDATE:
+      // case codePush.SyncStatus.DOWNLOADING_PACKAGE:
+      // case codePush.SyncStatus.AWAITING_USER_ACTION:
+      // case codePush.SyncStatus.INSTALLING_UPDATE:
+      //   break;
+    }
+  };
 
   syncImmediate() {
     codePush.disallowRestart();
@@ -94,9 +107,9 @@ class App extends Component<PropsType> {
       // ON_NEXT_RESUME 下次恢复到前台时
       // ON_NEXT_RESTART 下一次重启时
       // IMMEDIATE 马上更新
-      installMode : codePush.InstallMode.ON_NEXT_RESTART
+      installMode : codePush.InstallMode.ON_NEXT_RESUME
       // 对话框
-      // updateDialog : {
+      // updateDialog: {
       //   // 是否显示更新描述
       //   appendReleaseDescription: false,
       //   // 更新描述的前缀。 默认为"Description"
@@ -114,15 +127,18 @@ class App extends Component<PropsType> {
       //   // Alert窗口的标题
       //   title: '更新提示'
       // }
-    });
+    }, this.codePushStatusDidChange );
   }
 
   render() {
+    const { statusBarHidden, configLoaded } = this.state;
     return (
-      <View style={styles.screen}>
-        <StatusBar hidden={true} />
-        <AppContainer />
-      </View>
+      <AppProvider onLoad={this.handleLoad}>
+        <View style={styles.screen}>
+          <StatusBar hidden={statusBarHidden} />
+          {configLoaded ? <AppContainer /> : null}
+        </View>
+      </AppProvider>
     );
   }
 }

@@ -5,6 +5,7 @@ import React, { Component } from 'react';
 import { WebView } from 'react-native-webview';
 import { withNavigationFocus, StackActions } from 'react-navigation';
 import { StyleSheet, View, Text, Platform } from 'react-native';
+import { withAppConfig } from '../utils/AppContext';
 // import LoadingPage from '../LoadingPage';
 // import LoadErrorPage from '../LoadErrorPage';
 import ViewPortError from '../ViewPortError';
@@ -30,6 +31,8 @@ type StateType = {
   uuid: string,
   current: any
 };
+
+@withAppConfig
 class ViewPage extends Component<PropsType, StateType> {
 
   webViewRef: any;
@@ -43,7 +46,8 @@ class ViewPage extends Component<PropsType, StateType> {
   constructor( props: PropsType ) {
     super( props );
     this.webViewRef = React.createRef();
-    const url = this.props.navigation.getParam( 'url' );
+    const { configuration } = props;
+    const url = this.props.navigation.getParam( 'url' ) || configuration.config.homePage;
     this.state = {
       current: { url },
       uuid: this.props.navigation.state.key
@@ -84,7 +88,7 @@ class ViewPage extends Component<PropsType, StateType> {
   handleHome = () => {
     this.tabsHome = Tabs.watch( 'home', () => {
       if ( this.props.isFocused ) {
-        const home = this.props.navigation.getParam( 'home' );
+        const home = this.props.configuration.config.homePage;
         this.state.current.url = home;
         this.webViewRef.current.injectJavaScript( `location.href = '${home}'` );
       }

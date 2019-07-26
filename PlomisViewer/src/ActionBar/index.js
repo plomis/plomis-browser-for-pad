@@ -1,46 +1,33 @@
 // @flow
 
+import is from 'whatitis';
 import React, { Component } from 'react';
+import { withNavigation } from 'react-navigation';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { Animated, StyleSheet, View, /* Text, */ TouchableOpacity, TouchableWithoutFeedback, Easing } from 'react-native';
+import { Animated, StyleSheet, View, TouchableOpacity, Easing, Dimensions,
+  UIManager, findNodeHandle, Platform } from 'react-native';
+import { BlurView } from "@react-native-community/blur";
 import { History, Tabs, State } from '../ViewPortState';
 
 
-// type BarItemProps = {
-//   name: any,
-//   text: string,
-//   active?: boolean,
-//   onPress?: () => void
-// };
-// class BarItem extends Component<BarItemProps> {
-//   render() {
-//     const { active, name, text, onPress } = this.props;
-//     return (
-//       <TouchableOpacity activeOpacity={0.6} onPress={onPress}>
-//         <View style={styles.item}>
-//           <MaterialCommunityIcons
-//             size={32} name={name}
-//             style={[styles.itemIcon].concat( active ? [styles.itemActive] : [])} />
-//           <Text style={[styles.itemText].concat( active ? [styles.itemActive] : [])}>{text}</Text>
-//         </View>
-//       </TouchableOpacity>
-//     );
-//   }
-// }
-
-type MinBarItemProps = {
+type BarItemProps = {
   name: any,
   disabled?: boolean,
   onPress?: () => void
 };
-class MinBarItem extends Component<MinBarItemProps> {
+class BarItem extends Component<BarItemProps> {
   render() {
-    const { name, disabled, onPress } = this.props;
+    const { name, style, disabled, onPress } = this.props;
+    const itemStyle = [styles.item];
+    if ( style ) {
+      itemStyle.push( style );
+    }
     const button = (
-      <View style={styles.minItem}>
+      <View style={itemStyle}>
         <MaterialCommunityIcons
-          size={24} name={name}
-          style={styles.itemIcon} />
+          size={24}
+          name={name}
+          style={styles.icon} />
       </View>
     );
     return disabled ? (
@@ -55,29 +42,54 @@ class MinBarItem extends Component<MinBarItemProps> {
   }
 }
 
+class Blur extends React.Component {
+  render() {
+      const { style } = this.props;
+    const viewStyle = style ? [ style, styles.androidBlurView ] : style;
+    return Platform.OS === 'ios'
+      ? <BlurView {...this.props} />
+      : <View {...this.props} style={viewStyle} />;
+  }
+}
+
 type PropsType = {
   style: any,
   children: any
 };
 type StateType = {
-  minY: any,
+  barWidth: any,
+  dotOpacity: any,
+  ctrlOpacity: any,
+  barRadius: any,
+  translateY: any,
+  position: any,
   occurError: boolean,
   initialized: boolean,
   canGoBack: boolean
 };
+@withNavigation
 class ActionBar extends Component<PropsType, StateType> {
 
   tabsAdd: any;
-  StateError: any;
   StateLoad: any;
+  StateError: any;
   TabsChange: any;
 
-  state = {
-    minY: new Animated.Value( -44 ),
-    occurError: false,
-    initialized: false,
-    canGoBack: false
-  };
+  constructor( props ) {
+    super( props );
+    this.state = {
+      ctrlOpacity: null,
+      dotOpacity: null,
+      barWidth: null,
+      position: {},
+      translateY: null,
+      barRadius: null,
+      initialized: false,
+      occurError: false,
+      canGoBack: false
+    };
+    this.barRef = React.createRef();
+  }
 
   componentDidMount() {
     this.StateError = State.watch( 'error', () => {
@@ -87,7 +99,7 @@ class ActionBar extends Component<PropsType, StateType> {
     this.StateLoad = State.watch( 'load', () => {
       if ( this.state.initialized === false ) {
         this.state.initialized = true;
-        this.handleShowBar();
+        this.handleFirstShow();
       }
     });
     this.TabsChange = Tabs.watch( 'tabsChange', () => {
@@ -108,10 +120,11 @@ class ActionBar extends Component<PropsType, StateType> {
     remove( this.TabsChange );
   };
 
-  handleHide = () => {
-    Animated.timing( this.state.minY, {
-      toValue: -44,
-      easing:  Easing.out( Easing.exp )
+  handleHide = async () => {
+    const windowSize = this.getWindowSize();
+    Animated.timing( this.state.position.y, {
+      toValue: windowSize.height,
+      easing: Easing.out( Easing.exp )
     }).start();
   };
 
@@ -135,113 +148,240 @@ class ActionBar extends Component<PropsType, StateType> {
     Tabs.dispense( 'home' );
   }
 
-  // handleAddTabs = () => {
-  //   this.tabsAdd = Tabs.watch( 'add', () => {
-  //     this.handleHide();
-  //   });
-  // };
+  handleSetting = () => {
+    this.props.navigation.navigate( 'Setting' );
+  }
 
-  handleShowBar = () => {
-    if ( !this.state.occurError ) {
-      Animated.timing( this.state.minY, {
-        toValue: 0,
-        easing:  Easing.out( Easing.exp )
-      }).start();
-    }
+  handleFirstShow = async () => {
+    const windowSize = this.getWindowSize();
+    const offset = await this.getOffset( this.barRef.current );
+    const y = windowSize.height - offset.height - 20;
+    await this.setBarStyle({ top: windowSize.height });
+    Animated.timing( this.state.position.y, {
+      toValue: y,
+      easing: Easing.out( Easing.exp )
+    }).start();
   };
+
+  handleMinimize = async () => {
+    const windowSize = this.getWindowSize();
+    const offset = await this.getOffset( this.barRef.current );
+    const x = ( windowSize.width - offset.width ) / 2;
+    const barRadius = 20;
+    await this.setBarStyle({
+      left: x,
+      top: offset.top,
+      translateY: 0,
+      ctrlOpacity: 1,
+      dotOpacity: 0,
+      borderRadius: barRadius,
+      width: offset.width
+    });
+    Animated.parallel([
+      Animated.timing( this.state.ctrlOpacity, {
+        toValue: 0,
+        easing: Easing.out( Easing.exp )
+      }),
+      Animated.timing( this.state.dotOpacity, {
+        toValue: 1,
+        easing: Easing.out( Easing.exp )
+      }),
+      Animated.timing( this.state.translateY, {
+        toValue: -60,
+        easing: Easing.out( Easing.exp )
+      }),
+      Animated.timing( this.state.barRadius, {
+        toValue: 30,
+        easing: Easing.out( Easing.exp )
+      }),
+      Animated.timing( this.state.barWidth, {
+        toValue: 60,
+        easing: Easing.out( Easing.exp )
+      }),
+      Animated.timing( this.state.position.x, {
+        toValue: 8,
+        easing: Easing.out( Easing.exp )
+      }),
+      Animated.timing( this.state.position.y, {
+        toValue: windowSize.height - offset.height - 8,
+        easing: Easing.out( Easing.exp )
+      })
+    ]).start();
+  };
+
+  handleMaximize = async () => {
+    const windowSize = this.getWindowSize();
+    const offset = await this.getOffset( this.barRef.current );
+    const x = offset.left;
+    const y = offset.top;
+    const barRadius = 30;
+    const width = 60;
+    await this.setBarStyle({
+      top: y,
+      left: x,
+      ctrlOpacity: 0,
+      dotOpacity: 1,
+      translateY: -60,
+      borderRadius: barRadius,
+      width
+    });
+    Animated.parallel([
+      Animated.timing( this.state.ctrlOpacity, {
+        toValue: 1,
+        easing: Easing.out( Easing.exp )
+      }),
+      Animated.timing( this.state.dotOpacity, {
+        toValue: 0,
+        easing: Easing.out( Easing.exp )
+      }),
+      Animated.timing( this.state.translateY, {
+        toValue: 0,
+        easing: Easing.out( Easing.exp )
+      }),
+      Animated.timing( this.state.barRadius, {
+        toValue: 20,
+        easing: Easing.out( Easing.exp )
+      }),
+      Animated.timing( this.state.barWidth, {
+        toValue: 450,
+        easing: Easing.out( Easing.exp )
+      }),
+      Animated.timing( this.state.position.x, {
+        toValue: ( windowSize.width - 450 ) / 2,
+        easing: Easing.out( Easing.exp )
+      }),
+      Animated.timing( this.state.position.y, {
+        toValue: windowSize.height - offset.height - 20,
+        easing: Easing.out( Easing.exp )
+      })
+    ]).start();
+  };
+
+  getWindowSize() {
+    return Dimensions.get( 'window' );
+  }
+
+  getOffset( current ) {
+    return new Promise(( resolve ) => {
+      // android 里面 x y 都是 0
+      UIManager.measure( findNodeHandle( current ), ( x_, y_, width, height, left, top ) => {
+        resolve({ left, top, width, height });
+      });
+    });
+  }
+
+  setBarStyle( style ) {
+    return new Promise(( resolve ) => {
+      this.setState({
+        ctrlOpacity: is.Defined( style.ctrlOpacity ) ? new Animated.Value( style.ctrlOpacity ) : null,
+        dotOpacity: is.Defined( style.dotOpacity ) ? new Animated.Value( style.dotOpacity ) : null,
+        translateY: is.Defined( style.translateY ) ? new Animated.Value( style.translateY ) : null,
+        barRadius: is.Defined( style.borderRadius ) ? new Animated.Value( style.borderRadius ) : null,
+        barWidth: is.Defined( style.width ) ? new Animated.Value( style.width ) : null,
+        position: {
+          x: is.Defined( style.left ) ? new Animated.Value( style.left ) : null,
+          y: is.Defined( style.top ) ? new Animated.Value( style.top ) : null
+        }
+      }, resolve );
+    });
+  }
 
   render() {
 
-    const { minY, canGoBack } = this.state;
+    const { barWidth, barRadius, position, translateY, canGoBack,
+      ctrlOpacity, dotOpacity  } = this.state;
     const { style, children } = this.props;
+    const barStyle = {};
+    const dotStyle = {};
+    const ctrlStyle = {};
+    if ( position.x ) {
+      barStyle.left = position.x;
+    }
+    if ( position.y ) {
+      barStyle.top = position.y;
+    }
+    if ( barWidth ) {
+      barStyle.width = barWidth;
+    }
+    if ( barRadius ) {
+      barStyle.borderRadius = barRadius;
+    }
+    if ( translateY ) {
+      dotStyle.transform = [{ translateY }];
+      ctrlStyle.transform = [{ translateY }];
+    }
+    if ( ctrlOpacity ) {
+      ctrlStyle.opacity = ctrlOpacity;
+    }
+    if ( dotOpacity ) {
+      dotStyle.opacity = dotOpacity;
+    }
 
     return (
       <View style={style}>
         {children}
-        {/* <Animated.View style={[ styles.bar, { bottom: y }]}>
-          <BarItem name="arrow-left" text="后退" onPress={this.handleBack}  />
-          <BarItem name="arrow-right" text="前进" onPress={this.handleForward} />
-          <BarItem name="loop" text="刷新" onPress={this.handleReload} />
-          <BarItem onPress={this.handleHide} name="arrow-expand-down" text="隐藏"  />
-        </Animated.View> */}
-        <Animated.View style={[ styles.minBar, { bottom: minY }]}>
-          {/* <BarItem active name="clock-outline" text="历史记录" /> */}
-          {/* <BarItem name="selection-drag" text="截图分享"  /> */}
-          {/* <BarItem name="settings-outline" text="系统设置"  /> */}
-          <MinBarItem name="arrow-left" size={24} onPress={this.handleBack} />
-          <MinBarItem name="arrow-right" size={24} onPress={this.handleForward} />
-          <MinBarItem name="loop" text="刷新" onPress={this.handleReload} />
-          <MinBarItem name="home-outline" text="首页" onPress={this.handleGoHome} />
-          <MinBarItem name={'import'} size={24} disabled={!canGoBack} onPress={this.handlePop} />
-          <MinBarItem onPress={this.handleHide} name="arrow-expand-down" text="隐藏"  />
+        <Animated.View ref={this.barRef} style={[ styles.bar, barStyle ]}>
+          <Blur blurType="dark" style={styles.blur}>
+            <Animated.View style={[ styles.controls, ctrlStyle ]}>
+              <BarItem name="arrow-left" onPress={this.handleBack} />
+              <BarItem name="arrow-right" onPress={this.handleForward} />
+              <BarItem name="loop" text="刷新" onPress={this.handleReload} />
+              <BarItem name="home-outline" text="首页" disabled={canGoBack} onPress={this.handleGoHome} />
+              <BarItem name="import" disabled={!canGoBack} onPress={this.handlePop} />
+              <BarItem name="settings-outline" text="设置" onPress={this.handleSetting} />
+              <BarItem name="unfold-less-horizontal" text="隐藏" onPress={this.handleMinimize} style={{ transform: [{ rotate: '45deg' }]}} />
+            </Animated.View>
+            <Animated.View style={[ styles.dot, dotStyle ]}>
+              <BarItem name="unfold-more-horizontal" onPress={this.handleMaximize} style={{ transform: [{ rotate: '45deg' }]}} />
+            </Animated.View>
+          </Blur>
         </Animated.View>
-        <TouchableWithoutFeedback onPress={this.handleShowBar}>
-          <View style={styles.corner} />
-        </TouchableWithoutFeedback>
       </View>
     );
   }
 }
 
 const styles = StyleSheet.create({
-  bar: {
-    height: 96,
-    bottom: 17,
-    borderRadius: 25,
-    position: 'absolute',
-    backgroundColor: '#373945',
-    justifyContent: 'center',
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingRight: 22,
-    paddingLeft: 22,
-    zIndex: 10
-  },
   item: {
-    width: 64,
-    height: 64,
-    marginLeft: 8,
-    marginRight: 8
+    width: 45,
+    height: 60,
+    justifyContent: 'center'
   },
-  itemIcon: {
+  icon: {
     textAlign: 'center',
-    color: '#9C9EA9',
-    lineHeight: 44,
-    height: 44
+    color: '#9C9EA9'
   },
-  itemText: {
-    color: '#9C9EA9',
-    textAlign: 'center',
-    lineHeight: 20,
-    width: '100%',
-    height: 20,
-    fontSize: 12
-  },
-  itemActive: {
-    color: '#ddd'
-  },
-  minBar: {
-    bottom: 0,
-    borderTopLeftRadius: 4,
-    borderTopRightRadius: 4,
+  bar: {
+    top: '100%',
+    height: 60,
+    borderRadius: 20,
+    overflow: 'hidden',
     position: 'absolute',
-    backgroundColor: '#373945',
-    flexDirection: 'row',
-    paddingRight: 8,
-    paddingLeft: 8,
     zIndex: 10
   },
-  minItem: {
-    width: 60,
-    height: 44,
-    textAlign: 'center'
+  blur: {
+    width: 450
   },
-  corner: {
-    width: 280,
-    height: 25,
-    bottom: 0,
+  androidBlurView: {
+    backgroundColor: '#373945'
+  },
+  controls: {
+    width: '100%',
+    justifyContent: 'space-around',
+    flexDirection: 'row',
+    paddingRight: 15,
+    paddingLeft: 15,
+    height: 60
+  },
+  dot: {
+    top: 60,
+    left: 0,
+    width: 60,
+    height: 60,
+    flexDirection: 'row',
+    justifyContent: 'center',
     position: 'absolute',
-    zIndex: 9
+    zIndex: 1
   }
 });
 

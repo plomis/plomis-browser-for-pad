@@ -15,8 +15,12 @@
   },
   "dependencies": {
     "@ant-design/react-native": "^3.1.9",
+    "@react-native-community/async-storage": "^1.5.1",
+    "@react-native-community/blur": "^3.3.1",
     "events": "^3.0.0",
     "flystore": "^1.1.2",
+    "json5": "^2.1.0",
+    "omit.js": "^1.0.2",
     "react": "16.8.3",
     "react-native": "0.59.9",
     "react-native-code-push": "^5.6.0",
@@ -26,7 +30,9 @@
     "react-native-vector-icons": "^6.5.0",
     "react-native-webview": "^5.12.0",
     "react-navigation": "^3.11.0",
-    "urijs": "^1.19.1"
+    "react-navigation-header-buttons": "^3.0.1",
+    "urijs": "^1.19.1",
+    "whatitis": "^1.1.2"
   },
   "devDependencies": {
     "@babel/core": "^7.4.5",
