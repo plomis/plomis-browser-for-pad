@@ -6,7 +6,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 
 const newConfig = () => {
   return {
-    appConfigUrl: 'https://72k.io/configs/app-config.json?a=2',
+    appConfigUrl: 'https://72k.io/configs/app-config.json',
     setting: {
       useAppConfig: false,
       appConfigId: ''

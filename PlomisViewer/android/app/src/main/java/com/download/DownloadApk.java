@@ -14,7 +14,9 @@ import com.facebook.react.bridge.ReactMethod;
 
 public class DownloadApk extends ReactContextBaseJavaModule {
 
-    DownloadManager downManager ;
+    public static String description;
+
+    DownloadManager downManager;
     Activity myActivity;
 
     public DownloadApk( ReactApplicationContext reactContext ) {
@@ -22,25 +24,31 @@ public class DownloadApk extends ReactContextBaseJavaModule {
     }
 
     @Override
-    public String getName(){
+    public String getName() {
         return "DownloadApk";
     }
 
     @ReactMethod
     public void downloading( String url, String description ) {
 
+        DownloadApk.description = description;
+
         myActivity = getCurrentActivity();
         downManager = ( DownloadManager ) myActivity.getSystemService( Context.DOWNLOAD_SERVICE );
         Uri uri = Uri.parse( url );
         DownloadManager.Request request = new Request( uri );
+
+
+        // request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_MOBILE | DownloadManager.Request.NETWORK_WIFI);
+        // 设置允许使用的网络类型，这里是wifi可以
         request.setAllowedNetworkTypes( Request.NETWORK_WIFI );
 
         // 设置通知栏标题
         request.setNotificationVisibility( Request.VISIBILITY_VISIBLE );
         request.setMimeType( "application/vnd.android.package-archive" );
-        request.setTitle( "下载" );
+        request.setTitle( "更新" );
         if ( description == null || "".equals( description )){
-            description="目标apk正在下载";
+            description = "最新版安装包";
         }
 
         request.setDescription( description );
@@ -48,7 +56,8 @@ public class DownloadApk extends ReactContextBaseJavaModule {
 
         // 设置文件存放目录
         request.setDestinationInExternalFilesDir( myActivity, Environment.DIRECTORY_DOWNLOADS, description );
-        long downloadid=downManager.enqueue(request);
+
+        long downloadid = downManager.enqueue( request );
         SharedPreferences sPreferences = myActivity.getSharedPreferences( "ggfw_download", 0 );
         sPreferences.edit().putLong( "ggfw_download_apk", downloadid ).commit();
     }

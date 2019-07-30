@@ -5,7 +5,7 @@ import React, { Component } from 'react';
 import { WebView } from 'react-native-webview';
 import { withNavigationFocus, StackActions } from 'react-navigation';
 import { StyleSheet, View, Text, Platform } from 'react-native';
-import { withAppConfig } from '../utils/AppContext';
+import { withAppConfig } from '../components/AppContext';
 // import LoadingPage from '../LoadingPage';
 // import LoadErrorPage from '../LoadErrorPage';
 import ViewPortError from '../ViewPortError';

@@ -1,8 +1,7 @@
 
-import is from 'whatitis';
 import React from 'react';
 import omit from 'omit.js';
-import { configuration, setConfig, getConfig, restore } from './configuration';
+import { configuration, setConfig, getConfig, restore } from '../../utils/configuration';
 
 
 const AppContext = React.createContext( configuration );
@@ -23,19 +22,13 @@ export const withAppConfig = function( Comp ) {
 export class AppProvider extends React.Component {
 
   state = {
+    loaded: false,
     configuration: null
   };
 
   componentDidMount() {
     this.loadConfig();
   }
-
-  handleLoad = () => {
-    const { onLoad } = this.props;
-    if ( is.Function( onLoad )) {
-      onLoad();
-    }
-  };
 
   handleSetConfig = ( ...args ) => {
     const configuration = { ...setConfig( ...args ) };
@@ -58,15 +51,20 @@ export class AppProvider extends React.Component {
         }
       }
     } finally {
-      this.setState({ configuration: nextConfiguration }, this.handleLoad );
+      this.setState({ configuration: nextConfiguration, loaded: true });
     }
   };
 
   render() {
-    const { configuration } = this.state;
+    const { children, ...props } = this.props;
+    const { configuration, loaded } = this.state;
     const nextValue = configuration || {};
     nextValue.setConfig = this.handleSetConfig;
     nextValue.restore = this.handleRestore;
-    return <AppContext.Provider {...this.props} value={nextValue} />;
+    return (
+      <AppContext.Provider {...props} value={nextValue}>
+        {loaded ? children : null}
+      </AppContext.Provider>
+    );
   }
 }

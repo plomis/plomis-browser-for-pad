@@ -5,7 +5,7 @@ import { Switch, View } from 'react-native';
 import { ActivityIndicator, Toast } from '@ant-design/react-native';
 import List from '../../components/List';
 import ScrollStackView from '../../components/ScrollStackView';
-import { withAppConfig } from '../../utils/AppContext';
+import { withAppConfig } from '../../components/AppContext';
 import Services from './Services';
 
 
@@ -75,10 +75,14 @@ class Content extends React.Component {
     const { controller } = this.state;
     const signal = controller.signal;
     const { setConfig, configuration } = this.props;
-    fetch( configuration.appConfigUrl, { method: 'GET', signal }).then(
+    const configUrl = `${configuration.appConfigUrl}?v=${+ new Date()}`;
+    fetch( configUrl, { method: 'GET', signal }).then(
       response => response.json()
     ).then( json => {
-      setConfig( 'appConfigs', json );
+      const { setConfig, configuration } = this.props;
+      if ( configuration.setting.useAppConfig ) {
+        setConfig( 'appConfigs', json );
+      }
     }).catch(() => {
       setConfig( 'setting', {
         useAppConfig: false,
@@ -89,7 +93,7 @@ class Content extends React.Component {
   };
 
   fetchConfig = ( selectedKey ) => {
-    const { setConfig, configuration } = this.props;
+    const { configuration } = this.props;
     const appConfig = configuration.appConfigs.find(({ id }) => {
       return id === selectedKey;
     });
@@ -100,10 +104,13 @@ class Content extends React.Component {
       fetch( appConfig.url, { method: 'GET', signal }).then(
         response => response.json()
       ).then( json => {
-        setConfig( 'config', json );
-        setConfig( 'setting', {
-          appConfigId: selectedKey
-        });
+        const { setConfig, configuration } = this.props;
+        if ( configuration.setting.useAppConfig ) {
+          setConfig( 'config', json );
+          setConfig( 'setting', {
+            appConfigId: selectedKey
+          });
+        }
       }).catch(( err ) => {
         Toast.fail( err.toString());
       }).finally(() => {

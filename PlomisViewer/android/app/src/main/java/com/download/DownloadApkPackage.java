@@ -9,8 +9,7 @@ import java.util.List;
 public class DownloadApkPackage implements ReactPackage {
 
     @Override
-    public List createNativeModules( ReactApplicationContext reactContext )
-    {
+    public List createNativeModules( ReactApplicationContext reactContext ) {
         List modules = new ArrayList<>();
         modules.add( new DownloadApk( reactContext ));
         return modules;
