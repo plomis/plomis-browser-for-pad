@@ -34,9 +34,7 @@ class RootLayout extends Component {
   }
 
   render() {
-    return (
-      <AppContainer {...this.props} />
-    );
+    return <AppContainer {...this.props} />;
   }
 }
 

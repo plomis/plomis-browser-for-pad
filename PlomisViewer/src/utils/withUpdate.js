@@ -1,8 +1,11 @@
 
 import React from 'react';
-// import DeviceInfo from "react-native-device-info";
-import codePush from "react-native-code-push";
-import { NativeModules, Platform } from 'react-native';
+import codePush from 'react-native-code-push';
+import DeviceInfo from 'react-native-device-info';
+import { NativeModules, Platform, Linking, Alert } from 'react-native';
+import { getAppstoreAppVersion } from 'react-native-appstore-version-checker';
+import { configuration } from './configuration';
+import compare from './compareVersion';
 
 
 function withUpdate( Component ) {
@@ -15,14 +18,44 @@ function withUpdate( Component ) {
     }
 
     handleUpdate = () => {
-      // console.log("DeviceInfo:", DeviceInfo.getVersion())
       if ( Platform.OS === 'ios' ) {
-
-      } else {
-        NativeModules.DownloadApk.downloading(
-          'https://thingspower.com.cn/tpCloud.apk',
-          'tpCloud.apk'
-        );
+        const appId = '1474338848';
+        getAppstoreAppVersion( appId ).then( latest => {
+          if ( compare( latest, DeviceInfo.getVersion(), 2 ) > 0 ) {
+            Linking
+              .openURL( `itms-apps://itunes.apple.com/cn/app/id${appId}` )
+              .catch( err => {
+                Alert.alert(
+                  '错误',
+                  err.toString(),
+                  [{ text: 'OK', style: 'cancel' }]
+                );
+              });
+          }
+        });
+      } else if ( Platform.OS === 'android' ) {
+        fetch( configuration.versionUrl ).then(
+          res => res.json()
+        ).then(({ latest, downloadUrl }) => {
+          if ( compare( latest, DeviceInfo.getVersion(), 2 ) > 0 ) {
+            Alert.alert(
+              '更新',
+              '发现新版本，是否立即更新？',
+              [
+                { text: '取消', style: 'cancel' },
+                {
+                  text: '立即下载',
+                  onPress() {
+                    NativeModules.DownloadApk.downloading(
+                      downloadUrl,
+                      `android-@{latest}.apk`
+                    );
+                  }
+                }
+              ]
+            );
+          }
+        });
       }
     };
 
@@ -80,7 +113,7 @@ function withUpdate( Component ) {
   }
 
   return codePush({
-    checkFrequency: codePush.CheckFrequency.ON_APP_RESTART
+    checkFrequency: codePush.CheckFrequency.ON_APP_RESUME
   })( Wrapped );
 }
 
