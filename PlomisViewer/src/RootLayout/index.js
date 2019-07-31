@@ -4,7 +4,7 @@ import React, { Component } from 'react';
 import SplashScreen from 'react-native-splash-screen';
 import { createAppContainer, createStackNavigator } from 'react-navigation';
 import withRate from '../utils/withRate';
-import withUpdate from '../utils/withUpdate';
+import withAutoUpdate from '../utils/withAutoUpdate';
 import Container from '../Container';
 import Setting from '../Setting';
 
@@ -19,14 +19,14 @@ const AppStack = createStackNavigator({
 }, {
   mode: 'modal',
   headerMode: 'none',
-  initialRouteName: 'ViewPort'
+  initialRouteName: 'Setting'
 });
 
 const AppContainer = createAppContainer( AppStack );
 
 
 @withRate
-@withUpdate
+@withAutoUpdate
 class RootLayout extends Component {
 
   componentDidMount() {

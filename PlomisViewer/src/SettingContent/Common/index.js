@@ -6,7 +6,7 @@ import { createAppContainer, createStackNavigator } from 'react-navigation';
 import { Toast, Modal } from '@ant-design/react-native';
 import ScrollStackView from '../../components/ScrollStackView';
 import { withAppConfig } from '../../components/AppContext';
-import { restore } from '../../utils/configuration';
+// import { restore } from '../../utils/configuration';
 import List from '../../components/List';
 
 

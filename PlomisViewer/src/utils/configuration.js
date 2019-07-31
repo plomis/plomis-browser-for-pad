@@ -5,22 +5,36 @@ import AsyncStorage from '@react-native-community/async-storage';
 
 
 const newConfig = () => {
+
   return {
+
+    // 版本号检测地址 android
     versionUrl: 'https://72k.io/configs/version.json',
+
+    // 所有节点配置地址
     appConfigUrl: 'https://72k.io/configs/app-config.json',
+
+    // 当前使用得设定
     setting: {
       useAppConfig: false,
       appConfigId: ''
     },
+
+    // 默认配置
     defaultConfig: {
       configName: '默认演示配置',
       homePage: 'https://thingspower.com.cn'
     },
+
+    // 当前使用配置
     config: {
       configName: '默认演示配置',
       homePage: 'https://thingspower.com.cn'
     },
-    appConfigs: null/* [{
+
+    // 所有节点配置
+    appConfigs: null
+    /* [{
       id: 'preview',
       configName: '演示配置',
       url: 'https://72k.io/configs/preview/config.json'
@@ -43,7 +57,7 @@ export const setConfig = ( name, config ) => {
   } else {
     configuration[name] = config;
   }
-  if ( !configuration.setting.useAppConfig ) {
+  if ( configuration.setting.useAppConfig === false ) {
     configuration.config = { ...configuration.defaultConfig };
   }
   AsyncStorage.setItem( 'configuration', JSON.stringify( configuration ));

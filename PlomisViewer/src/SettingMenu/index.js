@@ -66,6 +66,9 @@ class Menu extends React.Component {
           <Item key="DownloadConfig">
             功能配置
           </Item>
+          <Item key="About">
+            关于
+          </Item>
         </List>
       </ScrollView>
     );

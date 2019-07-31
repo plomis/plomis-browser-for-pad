@@ -3,6 +3,7 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { State } from '../ViewPortState';
+import About from './About';
 import Common from './Common';
 import DownloadConfig from './DownloadConfig';
 
@@ -41,7 +42,8 @@ class Content extends React.Component {
 
   getContent() {
     const { key } = this.state;
-    return key === "Common"
+    return key === "About"
+      ? <About /> : key === "Common"
       ? <Common /> : key === "DownloadConfig"
       ? <DownloadConfig /> : null;
   }
