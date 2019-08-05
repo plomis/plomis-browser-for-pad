@@ -9,7 +9,8 @@ import withUpdate from '../../utils/withUpdate';
 
 
 @withUpdate
-class About extends React.Component {
+class Content extends React.Component {
+
   render() {
 
     const { version, checkUpdate } = this.props;
@@ -77,11 +78,11 @@ const styles = StyleSheet.create({
 });
 
 const AppStack = createStackNavigator({
-  About: {
-    screen: About
+  Content: {
+    screen: Content
   }
 }, {
-  initialRouteName: 'About',
+  initialRouteName: 'Content',
   defaultNavigationOptions: {
     gesturesEnabled: false
   }

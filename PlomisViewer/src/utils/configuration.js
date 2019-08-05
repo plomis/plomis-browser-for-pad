@@ -16,6 +16,7 @@ const newConfig = () => {
 
     // 当前使用得设定
     setting: {
+      theme: 'light',
       useAppConfig: false,
       appConfigId: ''
     },

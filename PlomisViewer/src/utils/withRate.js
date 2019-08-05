@@ -10,9 +10,9 @@ function withRate( Component ) {
 
     componentDidMount() {
       if ( Platform.OS === 'ios' ) {
-        setTimeout(() => {
-          AppStoreReview.requestReview( '1474338848' );
-        }, 5000 );
+        // setTimeout(() => {
+        //   AppStoreReview.requestReview( '1474338848' );
+        // }, 5000 );
       }
     }
 

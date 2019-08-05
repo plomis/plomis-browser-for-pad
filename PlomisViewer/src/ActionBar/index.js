@@ -8,6 +8,7 @@ import { Animated, StyleSheet, View, TouchableOpacity, Easing, Dimensions,
   UIManager, findNodeHandle, Platform } from 'react-native';
 import { BlurView } from "@react-native-community/blur";
 import { History, Tabs, State } from '../ViewPortState';
+import { withAppConfig } from '../components/AppContext';
 
 
 type BarItemProps = {
@@ -67,6 +68,7 @@ type StateType = {
   initialized: boolean,
   canGoBack: boolean
 };
+@withAppConfig
 @withNavigation
 class ActionBar extends Component<PropsType, StateType> {
 
@@ -151,6 +153,13 @@ class ActionBar extends Component<PropsType, StateType> {
   handleSetting = () => {
     this.props.navigation.navigate( 'Setting' );
   }
+
+  handleTheme = () => {
+    const { setConfig } = this.props;
+    setConfig( 'setting', {
+      theme: 'dark'
+    });
+  };
 
   handleFirstShow = async () => {
     const windowSize = this.getWindowSize();
@@ -290,7 +299,7 @@ class ActionBar extends Component<PropsType, StateType> {
 
     const { barWidth, barRadius, position, translateY, canGoBack,
       ctrlOpacity, dotOpacity  } = this.state;
-    const { style, children } = this.props;
+    const { style, children, configuration } = this.props;
     const barStyle = {};
     const dotStyle = {};
     const ctrlStyle = {};
@@ -321,7 +330,7 @@ class ActionBar extends Component<PropsType, StateType> {
       <View style={style}>
         {children}
         <Animated.View ref={this.barRef} style={[ styles.bar, barStyle ]}>
-          <Blur blurType="dark" style={styles.blur}>
+          <Blur blurType={configuration.setting.theme} style={styles.blur}>
             <Animated.View style={[ styles.controls, ctrlStyle ]}>
               <BarItem name="arrow-left" onPress={this.handleBack} />
               <BarItem name="arrow-right" onPress={this.handleForward} />
@@ -330,6 +339,7 @@ class ActionBar extends Component<PropsType, StateType> {
               <BarItem name="import" disabled={!canGoBack} onPress={this.handlePop} />
               <BarItem name="settings-outline" text="设置" onPress={this.handleSetting} />
               <BarItem name="unfold-less-horizontal" text="隐藏" onPress={this.handleMinimize} style={{ transform: [{ rotate: '45deg' }]}} />
+              <BarItem name="unfold-less-horizontal" text="主题" onPress={this.handleTheme} />
             </Animated.View>
             <Animated.View style={[ styles.dot, dotStyle ]}>
               <BarItem name="unfold-more-horizontal" onPress={this.handleMaximize} style={{ transform: [{ rotate: '45deg' }]}} />

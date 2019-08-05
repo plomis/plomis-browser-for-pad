@@ -10,12 +10,6 @@ import DownloadConfig from './DownloadConfig';
 
 class Content extends React.Component {
 
-  static navigationOptions({ screenProps }) {
-    return {
-      headerTitle: screenProps.title || ''
-    };
-  }
-
   state = {
     key: ''
   };
@@ -50,7 +44,7 @@ class Content extends React.Component {
 
   render() {
     return (
-      <View style={styles.menuContent}>
+      <View style={styles.content}>
         {this.getContent()}
       </View>
     );
@@ -58,7 +52,7 @@ class Content extends React.Component {
 }
 
 const styles = StyleSheet.create({
-  menuContent: {
+  content: {
     flex: 1,
     backgroundColor: '#EFEFF4'
   }

@@ -18,6 +18,7 @@
     "@react-native-community/async-storage": "^1.5.1",
     "@react-native-community/blur": "^3.3.1",
     "events": "^3.0.0",
+    "expo": "^34.0.3",
     "flystore": "^1.1.2",
     "json5": "^2.1.0",
     "omit.js": "^1.0.2",
