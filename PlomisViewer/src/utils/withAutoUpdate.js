@@ -39,7 +39,7 @@ function withUpdate( Component ) {
         fetch( configuration.versionUrl ).then(
           res => res.json()
         ).then(({ latest, downloadUrl }) => {
-          if ( compare( latest, DeviceInfo.getVersion(), 2 ) > 0 ) {
+          if ( compare( latest, DeviceInfo.getVersion(), 3 ) > 0 ) {
             Alert.alert(
               '更新',
               '发现新版本，是否立即更新？',

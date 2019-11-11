@@ -123,9 +123,9 @@ class ActionBar extends Component<PropsType, StateType> {
   };
 
   handleHide = async () => {
-    const windowSize = this.getWindowSize();
+    // const windowSize = this.getWindowSize();
     Animated.timing( this.state.position.y, {
-      toValue: windowSize.height,
+      toValue: -48,
       easing: Easing.out( Easing.exp )
     }).start();
   };
@@ -162,10 +162,10 @@ class ActionBar extends Component<PropsType, StateType> {
   };
 
   handleFirstShow = async () => {
-    const windowSize = this.getWindowSize();
+    // const windowSize = this.getWindowSize();
     const offset = await this.getOffset( this.barRef.current );
-    const y = windowSize.height - offset.height - 20;
-    await this.setBarStyle({ top: windowSize.height });
+    const y = 20;
+    await this.setBarStyle({ bottom: - offset.height });
     Animated.timing( this.state.position.y, {
       toValue: y,
       easing: Easing.out( Easing.exp )
@@ -179,7 +179,7 @@ class ActionBar extends Component<PropsType, StateType> {
     const barRadius = 20;
     await this.setBarStyle({
       left: x,
-      top: offset.top,
+      bottom: 20,
       translateY: 0,
       ctrlOpacity: 1,
       dotOpacity: 0,
@@ -212,7 +212,7 @@ class ActionBar extends Component<PropsType, StateType> {
         easing: Easing.out( Easing.exp )
       }),
       Animated.timing( this.state.position.y, {
-        toValue: windowSize.height - offset.height - 8,
+        toValue: 8,
         easing: Easing.out( Easing.exp )
       })
     ]).start();
@@ -222,11 +222,11 @@ class ActionBar extends Component<PropsType, StateType> {
     const windowSize = this.getWindowSize();
     const offset = await this.getOffset( this.barRef.current );
     const x = offset.left;
-    const y = offset.top;
+    // const y = offset.top;
     const barRadius = 30;
     const width = 60;
     await this.setBarStyle({
-      top: y,
+      bottom: 20,
       left: x,
       ctrlOpacity: 0,
       dotOpacity: 1,
@@ -252,15 +252,15 @@ class ActionBar extends Component<PropsType, StateType> {
         easing: Easing.out( Easing.exp )
       }),
       Animated.timing( this.state.barWidth, {
-        toValue: 450,
+        toValue: 250,
         easing: Easing.out( Easing.exp )
       }),
       Animated.timing( this.state.position.x, {
-        toValue: ( windowSize.width - 450 ) / 2,
+        toValue: ( windowSize.width - 250 ) / 2,
         easing: Easing.out( Easing.exp )
       }),
       Animated.timing( this.state.position.y, {
-        toValue: windowSize.height - offset.height - 20,
+        toValue: 20,
         easing: Easing.out( Easing.exp )
       })
     ]).start();
@@ -289,7 +289,7 @@ class ActionBar extends Component<PropsType, StateType> {
         barWidth: is.Defined( style.width ) ? new Animated.Value( style.width ) : null,
         position: {
           x: is.Defined( style.left ) ? new Animated.Value( style.left ) : null,
-          y: is.Defined( style.top ) ? new Animated.Value( style.top ) : null
+          y: is.Defined( style.bottom ) ? new Animated.Value( style.bottom ) : null
         }
       }, resolve );
     });
@@ -307,7 +307,7 @@ class ActionBar extends Component<PropsType, StateType> {
       barStyle.left = position.x;
     }
     if ( position.y ) {
-      barStyle.top = position.y;
+      barStyle.bottom = position.y;
     }
     if ( barWidth ) {
       barStyle.width = barWidth;
@@ -332,14 +332,14 @@ class ActionBar extends Component<PropsType, StateType> {
         <Animated.View ref={this.barRef} style={[ styles.bar, barStyle ]}>
           <Blur blurType={configuration.setting.theme} style={styles.blur}>
             <Animated.View style={[ styles.controls, ctrlStyle ]}>
-              <BarItem name="arrow-left" onPress={this.handleBack} />
-              <BarItem name="arrow-right" onPress={this.handleForward} />
-              <BarItem name="loop" text="刷新" onPress={this.handleReload} />
+              {/* <BarItem name="arrow-left" onPress={this.handleBack} />
+              <BarItem name="arrow-right" onPress={this.handleForward} /> */}
               <BarItem name="home-outline" text="首页" disabled={canGoBack} onPress={this.handleGoHome} />
+              <BarItem name="loop" text="刷新" onPress={this.handleReload} />
               <BarItem name="import" disabled={!canGoBack} onPress={this.handlePop} />
-              <BarItem name="settings-outline" text="设置" onPress={this.handleSetting} />
+              {/* <BarItem name="settings-outline" text="设置" onPress={this.handleSetting} /> */}
               <BarItem name="unfold-less-horizontal" text="隐藏" onPress={this.handleMinimize} style={{ transform: [{ rotate: '45deg' }]}} />
-              <BarItem name="unfold-less-horizontal" text="主题" onPress={this.handleTheme} />
+              {/* <BarItem name="unfold-less-horizontal" text="主题" onPress={this.handleTheme} /> */}
             </Animated.View>
             <Animated.View style={[ styles.dot, dotStyle ]}>
               <BarItem name="unfold-more-horizontal" onPress={this.handleMaximize} style={{ transform: [{ rotate: '45deg' }]}} />
@@ -354,7 +354,7 @@ class ActionBar extends Component<PropsType, StateType> {
 const styles = StyleSheet.create({
   item: {
     width: 45,
-    height: 60,
+    height: 48,
     justifyContent: 'center'
   },
   icon: {
@@ -362,15 +362,15 @@ const styles = StyleSheet.create({
     color: '#9C9EA9'
   },
   bar: {
-    top: '100%',
-    height: 60,
+    bottom: -48,
+    height: 48,
     borderRadius: 20,
     overflow: 'hidden',
     position: 'absolute',
     zIndex: 10
   },
   blur: {
-    width: 450
+    width: 250
   },
   androidBlurView: {
     backgroundColor: '#373945'

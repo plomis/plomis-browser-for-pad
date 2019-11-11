@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "start": "node node_modules/react-native/local-cli/cli.js start",
-    "dev": "react-native run-ios --simulator 'iPad Pro (12.9-inch) (3rd generation) (12.2)'",
-    "dev-android": "react-native run-android --appIdSuffix \"debug\"",
+    "ios": "react-native run-ios --simulator 'iPad Pro (12.9-inch) (3rd generation) (12.2)'",
+    "android": "react-native run-android --appIdSuffix \"debug\"",
     "dev-android-staging": "react-native run-android --variant releaseStaging",
     "build-android": "cd android && ./gradlew assembleRelease",
     "install-android": "adb install -r ./android/app/build/outputs/apk/release/app-release.apk",

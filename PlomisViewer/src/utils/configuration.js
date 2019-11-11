@@ -9,10 +9,10 @@ const newConfig = () => {
   return {
 
     // 版本号检测地址 android
-    versionUrl: 'https://72k.io/configs/version.json',
+    versionUrl: 'https://thingspower-jssl.obs.cn-east-2.myhuaweicloud.com/version.json',
 
     // 所有节点配置地址
-    appConfigUrl: 'https://72k.io/configs/app-config.json',
+    appConfigUrl: 'https://thingspower-jssl.obs.cn-east-2.myhuaweicloud.com/app-config.json',
 
     // 当前使用得设定
     setting: {
@@ -24,13 +24,13 @@ const newConfig = () => {
     // 默认配置
     defaultConfig: {
       configName: '默认演示配置',
-      homePage: 'https://thingspower.com.cn'
+      homePage: 'https://jssl.thingspower.com.cn'
     },
 
     // 当前使用配置
     config: {
       configName: '默认演示配置',
-      homePage: 'https://thingspower.com.cn'
+      homePage: 'https://jssl.thingspower.com.cn'
     },
 
     // 所有节点配置

@@ -1,4 +1,4 @@
 <resources>
 	<string moduleConfig="true" name="reactNativeCodePush_androidDeploymentKey">rWfDRLCjss3jmbbRltGSxvJA3Uw9S1XqNSJkS</string>
-    <string name="app_name">欣动智云</string>
+    <string name="app_name">节水监管平台</string>
 </resources>
