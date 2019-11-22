@@ -252,11 +252,11 @@ class ActionBar extends Component<PropsType, StateType> {
         easing: Easing.out( Easing.exp )
       }),
       Animated.timing( this.state.barWidth, {
-        toValue: 250,
+        toValue: 300,
         easing: Easing.out( Easing.exp )
       }),
       Animated.timing( this.state.position.x, {
-        toValue: ( windowSize.width - 250 ) / 2,
+        toValue: ( windowSize.width - 300 ) / 2,
         easing: Easing.out( Easing.exp )
       }),
       Animated.timing( this.state.position.y, {
@@ -332,11 +332,11 @@ class ActionBar extends Component<PropsType, StateType> {
         <Animated.View ref={this.barRef} style={[ styles.bar, barStyle ]}>
           <Blur blurType={configuration.setting.theme} style={styles.blur}>
             <Animated.View style={[ styles.controls, ctrlStyle ]}>
-              {/* <BarItem name="arrow-left" onPress={this.handleBack} />
-              <BarItem name="arrow-right" onPress={this.handleForward} /> */}
+              <BarItem name="arrow-left" onPress={this.handleBack} />
+              <BarItem name="arrow-right" onPress={this.handleForward} />
               <BarItem name="home-outline" text="首页" disabled={canGoBack} onPress={this.handleGoHome} />
               <BarItem name="loop" text="刷新" onPress={this.handleReload} />
-              <BarItem name="import" disabled={!canGoBack} onPress={this.handlePop} />
+              {/* <BarItem name="import" disabled={!canGoBack} onPress={this.handlePop} /> */}
               {/* <BarItem name="settings-outline" text="设置" onPress={this.handleSetting} /> */}
               <BarItem name="unfold-less-horizontal" text="隐藏" onPress={this.handleMinimize} style={{ transform: [{ rotate: '45deg' }]}} />
               {/* <BarItem name="unfold-less-horizontal" text="主题" onPress={this.handleTheme} /> */}
@@ -370,7 +370,7 @@ const styles = StyleSheet.create({
     zIndex: 10
   },
   blur: {
-    width: 250
+    width: 300
   },
   androidBlurView: {
     backgroundColor: '#373945'

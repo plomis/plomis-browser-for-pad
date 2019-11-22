@@ -115,8 +115,8 @@ android {
         renderscriptSupportModeEnabled true
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 19
-        versionName "1.1.4"
+        versionCode 20
+        versionName "1.1.5"
     }
     splits {
         abi {
@@ -162,11 +162,11 @@ android {
 }
 
 dependencies {
+    implementation project(':react-native-webview')
     implementation project(':react-native-device-info')
     implementation project(':@react-native-community_blur')
     implementation project(':@react-native-community_async-storage')
     implementation project(':react-native-gesture-handler')
-    implementation project(':react-native-webview')
     implementation project(':react-native-vector-icons')
     implementation project(':react-native-splash-screen')
     implementation project(':react-native-orientation-locker')

@@ -210,7 +210,8 @@ class ViewPage extends Component<PropsType, StateType> {
       // allowUniversalAccessFromFileURLs: false,
       // allowsInlineMediaPlayback: false,
       automaticallyAdjustContentInsets: false,
-      source: { uri: this.state.current.url }
+      source: { uri: this.state.current.url },
+      nativeConfig: { props: { webContentsDebuggingEnabled: true }}
     };
     // 仅在ios有效
     if ( Platform.OS === "ios" ) {
@@ -239,7 +240,7 @@ class ViewPage extends Component<PropsType, StateType> {
         // onLoadStart={this.handleLoadStart} // 导致页面浮动元素不能点击
         onMessage={this.handleMessage}
         onNavigationStateChange={this.handleNavigationStateChange}
-
+        userAgent="Thingspower/1.0.0"
         // 加载过度界面
         // startInLoadingState
         // renderLoading={this.renderLoading}

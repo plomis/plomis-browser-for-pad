@@ -3,11 +3,13 @@ package com.plomisviewer;
 import android.app.Application;
 
 import com.facebook.react.ReactApplication;
+import com.reactnativecommunity.webview.RNCWebViewPackage;
+import android.webkit.WebView;
+import com.facebook.react.common.build.ReactBuildConfig;
 import com.learnium.RNDeviceInfo.RNDeviceInfo;
 import com.cmcewen.blurview.BlurViewPackage;
 import com.reactnativecommunity.asyncstorage.AsyncStoragePackage;
 import com.swmansion.gesturehandler.react.RNGestureHandlerPackage;
-import com.reactnativecommunity.webview.RNCWebViewPackage;
 import com.oblador.vectoricons.VectorIconsPackage;
 import org.devio.rn.splashscreen.SplashScreenReactPackage;
 import org.wonday.orientation.OrientationPackage;
@@ -67,6 +69,9 @@ public class MainApplication extends Application implements ReactApplication {
   @Override
   public void onCreate() {
     super.onCreate();
+    if ( ReactBuildConfig.DEBUG ) {
+      WebView.setWebContentsDebuggingEnabled( true );
+    }
     SoLoader.init(this, /* native exopackage */ false);
   }
 }
