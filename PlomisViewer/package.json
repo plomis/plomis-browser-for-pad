@@ -35,7 +35,7 @@
     "react-native-webview": "^5.12.0",
     "react-navigation": "^3.11.0",
     "react-navigation-header-buttons": "^3.0.1",
-    "urijs": "^1.19.1",
+    "urijs": "^1.19.4",
     "whatitis": "^1.1.2"
   },
   "devDependencies": {
