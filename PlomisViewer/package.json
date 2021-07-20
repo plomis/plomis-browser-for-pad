@@ -23,7 +23,7 @@
     "json5": "^2.1.0",
     "omit.js": "^1.0.2",
     "react": "16.8.3",
-    "react-native": "0.59.9",
+    "react-native": "0.62.3",
     "react-native-app-store-review": "0.0.3",
     "react-native-appstore-version-checker": "^2.7.2",
     "react-native-code-push": "^5.6.0",
