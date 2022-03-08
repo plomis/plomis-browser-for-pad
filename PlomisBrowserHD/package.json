@@ -30,7 +30,7 @@
     "react-native-webview": "^5.11.0",
     "react-navigation": "^3.9.1",
     "react-navigation-animated-switch": "^0.2.0",
-    "urijs": "^1.19.1",
+    "urijs": "^1.19.10",
     "uuid": "^3.3.2"
   },
   "devDependencies": {
